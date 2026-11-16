@@ -3,6 +3,7 @@ pragma solidity 0.8.38;
 
 import {Vm} from "forge-std/Vm.sol";
 import {RegistrationTestBase} from "./helpers/RegistrationTestBase.sol";
+import {feeAt} from "./helpers/Fee.sol";
 
 /// Compares the registration contract against the EIP's bytecode. Every call goes to both, with
 /// the signature only in this repository's request, and the two must agree on success, return
@@ -121,17 +122,6 @@ abstract contract RegistrationQueueTest is RegistrationTestBase {
                 assertEq(load(registration, slot), load(EIP, slot), "queue slot");
             }
         }
-    }
-
-    /// The EIP's `fake_exponential(MIN_FEE, exponent, FEE_UPDATE_FRACTION)`.
-    function feeAt(uint256 exponent) internal pure returns (uint256) {
-        uint256 output;
-        uint256 accum = 17;
-        for (uint256 i = 1; accum > 0; i++) {
-            output += accum;
-            accum = (accum * exponent) / (17 * i);
-        }
-        return output / 17;
     }
 
     function sender(uint256 j) internal pure returns (address) {
