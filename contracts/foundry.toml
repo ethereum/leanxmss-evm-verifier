@@ -10,13 +10,21 @@ evm_version = "osaka"
 # 0.8.38 only compiles for Amsterdam in experimental mode.
 hardfork = "amsterdam"
 optimizer = true
-optimizer_runs = 200
+# The contracts run for as long as the chain does, so the optimizer is set for runtime gas over
+# code size. It keeps the verifier's constants as literals, which is 1.3k gas of a verification.
+optimizer_runs = 1_000_000
 # Strip the CBOR metadata trailer: bytecode then depends only on the code and
 # compiler settings, not on comments, file paths, or source formatting.
 bytecode_hash = "none"
 cbor_metadata = false
 # Tests read the leanXMSS vectors: EthLib's cases and the proofs of possession from xmss/.
 fs_permissions = [{ access = "read", path = "./test/vectors" }]
+
+# A long differential run of the verifier against its reference. A run builds a signature, which
+# takes about a second, and the two tests that do it set their own number of runs:
+#   FOUNDRY_PROFILE=deep forge test --match-contract LeanXmssReferenceTest --fuzz-seed 1
+[profile.deep.fuzz]
+runs = 250
 
 [fmt]
 line_length = 100
