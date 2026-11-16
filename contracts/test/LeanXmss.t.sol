@@ -44,7 +44,7 @@ contract LeanXmssTest is Test {
             checked++;
             if (c.expected) valid++;
         }
-        assertEq(checked, 21);
+        assertEq(checked, 38);
         assertEq(valid, 4);
     }
 
@@ -52,7 +52,7 @@ contract LeanXmssTest is Test {
     /// message is short, and both reject.
     function test_UnrepresentableVerifyVectorsReject() public view {
         LeanXmssVectors.VerifyCase[] memory cases = LeanXmssVectors.loadVerify();
-        assertEq(cases.length, 23);
+        assertEq(cases.length, 40);
         uint256 excluded;
         for (uint256 i; i < cases.length; i++) {
             if (LeanXmssVectors.representable(cases[i])) continue;
