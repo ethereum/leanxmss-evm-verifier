@@ -27,6 +27,10 @@ jobs:
       - name: Format
         run: forge fmt --check
 
+      # src/LeanXmss.sol is generated, so it must be what the script writes.
+      - name: Generated verifier
+        run: python3 scripts/generate-verifier.py --check
+
       - name: Build
         run: forge build --sizes
 

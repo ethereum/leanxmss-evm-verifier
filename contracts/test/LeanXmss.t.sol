@@ -3,6 +3,7 @@ pragma solidity 0.8.38;
 
 import {Test} from "forge-std/Test.sol";
 import {LeanXmss} from "../src/LeanXmss.sol";
+import {LeanXmssReference} from "./helpers/LeanXmssReference.sol";
 import {LeanXmssVectors} from "./helpers/LeanXmssVectors.sol";
 
 contract LeanXmssHarness {
@@ -19,13 +20,81 @@ contract LeanXmssHarness {
     }
 }
 
+/// The verifier written with loops. `root` and `bottomRoot` let a test build a signature that
+/// verifies, at any leaf index, without a secret key.
+contract LeanXmssReferenceHarness {
+    function verify(bytes32 publicKey, bytes32 message, bytes calldata signature)
+        external
+        pure
+        returns (bool)
+    {
+        return LeanXmssReference.verify(publicKey, message, signature);
+    }
+
+    function root(bytes32 publicKey, bytes32 message, bytes calldata signature)
+        external
+        pure
+        returns (bool, bytes16)
+    {
+        return LeanXmssReference.root(publicKey, message, signature);
+    }
+
+    function bottomRoot(bytes32 publicKey, bytes32 message, bytes calldata signature)
+        external
+        pure
+        returns (bool, bytes16)
+    {
+        return LeanXmssReference.bottomRoot(publicKey, message, signature);
+    }
+
+    function roots(bytes32 publicKey, bytes32 message, bytes calldata signature)
+        external
+        pure
+        returns (bool, bytes16, bool, bytes16)
+    {
+        return LeanXmssReference.roots(publicKey, message, signature);
+    }
+}
+
+/// Calls `verify` from a function that has allocated memory, which `verify` works over.
+contract LeanXmssMemoryHarness {
+    /// Verifies after allocating `size` bytes, and reverts unless `verify` left them, the free
+    /// memory pointer and the zero slot as they were.
+    function verify(bytes32 publicKey, bytes32 message, bytes calldata signature, uint256 size)
+        external
+        pure
+        returns (bool ok)
+    {
+        bytes memory allocated = new bytes(size);
+        for (uint256 i; i < size; i++) {
+            allocated[i] = bytes1(uint8(i * 31 + 7));
+        }
+        bytes32 contents = keccak256(allocated);
+        bytes32 free;
+        assembly {
+            free := mload(0x40)
+        }
+        ok = LeanXmss.verify(publicKey, message, signature);
+        bytes32 freeAfter;
+        bytes32 zero;
+        assembly {
+            freeAfter := mload(0x40)
+            zero := mload(0x60)
+        }
+        require(freeAfter == free && zero == 0);
+        require(allocated.length == size && keccak256(allocated) == contents);
+    }
+}
+
 /// The vectors are EthLib's, whose leanXMSS is the spec, so these tests check the Solidity code
 /// against the spec's own cases.
 contract LeanXmssTest is Test {
     LeanXmssHarness internal harness;
+    LeanXmssReferenceHarness internal referenceHarness;
 
     function setUp() public {
         harness = new LeanXmssHarness();
+        referenceHarness = new LeanXmssReferenceHarness();
     }
 
     /// Every `verify` case that can be passed gives its expected result.
@@ -38,6 +107,11 @@ contract LeanXmssTest is Test {
             if (!LeanXmssVectors.representable(c)) continue;
             assertEq(
                 harness.verify(bytes32(c.publicKey), bytes32(c.message), c.signature),
+                c.expected,
+                c.name
+            );
+            assertEq(
+                referenceHarness.verify(bytes32(c.publicKey), bytes32(c.message), c.signature),
                 c.expected,
                 c.name
             );

@@ -59,5 +59,7 @@ pinned in [`Cargo.toml`](Cargo.toml). leanVM tests it on the same EthLib cases. 
 committed; CI does not regenerate them.
 
 To follow a newer spec, run `./sync-vectors.sh` with the new EthLib commit, and fix the verifier
-until the tests pass. If the scheme changed, also move the leanVM commit in `Cargo.toml` to one
-that follows it and run the generator again.
+until the tests pass: first `contracts/test/helpers/LeanXmssReference.sol`, which is written with
+loops, and then the template and the script that generate `contracts/src/LeanXmss.sol`. If the
+scheme changed, also move the leanVM commit in `Cargo.toml` to one that follows it and run the
+generator again.

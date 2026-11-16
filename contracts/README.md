@@ -6,11 +6,11 @@ Foundry project for the PQ registration contracts. Run all commands from this di
 | --- | --- |
 | `PQValidatorRegistration` | [EIP-8483](https://github.com/ethereum/EIPs/pull/12609)'s PQ registration request contract, with a leanXMSS proof of possession. |
 | `PQBuilderRegistration` | EIP-8483's builder PQ registration request contract, with a leanXMSS proof of possession. |
-| `LeanXmss` | The leanXMSS verifier, a library both contracts inline. |
+| `LeanXmss` | The leanXMSS verifier, a library both contracts inline. It is [generated](#the-verifier). |
 
 `PQValidatorRegistration` and `PQBuilderRegistration` are EIP-8483's two request contracts,
 written in Solidity, with one addition: a request carries a leanXMSS proof of possession of the
-XMSS key it registers, and the contract verifies it (`LeanXmss`, about 45k gas), so an invalid one
+XMSS key it registers, and the contract verifies it (`LeanXmss`, about 20k gas), so an invalid one
 reverts and never reaches the consensus layer. The rest is the EIP's: the dispatch, the fee, the
 limits, the storage layout, the log and the system call's output. The consensus layer honors a
 request only from the validator's withdrawal address, or the builder's execution address.
@@ -77,6 +77,46 @@ logs, storage and balance, from any storage, including states no sequence of cal
 `test/ProofOfPossession.t.sol` checks what the proof binds, on proofs from the generator in
 [`xmss/`](../xmss/).
 
+## The verifier
+
+`src/LeanXmss.sol` is generated. `scripts/generate-verifier.py` writes it from
+`scripts/LeanXmss.sol.template`, and CI fails if the file isn't what the script writes.
+
+```sh
+python3 scripts/generate-verifier.py
+```
+
+A verification runs 172 Keccak calls, which cost 7.6k gas. A verifier written with loops spends
+another 36k around them, on counters, shifts, computed offsets and stack moves. The generated one
+spends 12.7k:
+
+- The chains and the levels of a Merkle path are unrolled, one block each, so every offset and
+  mask is a constant.
+- It works at fixed memory addresses, and copies each layer of the signature to one of them. If
+  the caller has allocated memory there, it saves it and puts it back.
+- A path at index zero, which both paths of a proof of possession are, has its own code: every
+  node is a left child, and only the level changes in its address.
+
+`test/helpers/LeanXmssReference.sol` is the verifier with loops, which is easier to read against
+the spec. `test/LeanXmss.t.sol` runs EthLib's cases on both. `test/LeanXmssReference.t.sol`
+checks the generated one against it on signatures it builds without a secret key, from random
+chain values and siblings, under the root the reference reaches:
+
+- Signatures that verify, at 16 leaf indices and then at random ones, so with other digits each
+  time.
+- Signatures that only the codeword check rejects, where one digest is off by a single bit past
+  its 58th digit, or by one in its sum.
+- Changed bits in EthLib's valid cases, and memory that the caller allocated, which `verify` has
+  to leave as it was.
+
+A digest is a codeword about once in a million tries, so a random signature takes about 300M gas
+to build. `forge test` builds two per fuzz test, and the `deep` profile 250, which takes several
+minutes:
+
+```sh
+FOUNDRY_PROFILE=deep forge test --match-contract LeanXmssReferenceTest --fuzz-seed 1
+```
+
 ## Gas of the proof of possession
 
 `scripts/measure-gas.py` measures what the proof adds to a validator registration, on anvil, on
@@ -94,25 +134,28 @@ gasUsed of one validator registration:
 
 | Scenario | Without the proof | With it |
 | --- | --- | --- |
-| S1: the first request ever | 907,459 | 991,219 |
-| S2: the first request of a block, on a queue used before | 222,019 | 305,779 |
-| S3: a later request in the same block | 114,030 | 197,760 |
+| S1: the first request ever | 907,459 | 967,235 |
+| S2: the first request of a block, on a queue used before | 222,019 | 281,795 |
+| S3: a later request in the same block | 114,030 | 182,024 |
 
-The proof adds 83,760 gas in S1 and S2:
+The proof adds 59,776 gas in S1 and S2:
 
 | | Gas |
 | --- | --- |
 | The signature's 2404 bytes of calldata | 38,260 |
-| This contract's add without the check, against the EIP's bytecode | 1,009 |
-| Checking the proof: `M`, the leaf index and the verify | 44,491 |
-| Total | 83,760 |
+| This contract's add without the check, against the EIP's bytecode | 984 |
+| Checking the proof: `M`, the leaf index and the verify | 20,532 |
+| Total | 59,776 |
+
+In S3 the request pays its calldata floor, 182,024 gas, which is more than its intrinsic gas plus
+its execution, so the check adds nothing to what carrying the signature costs.
 
 These are single measurements, not averages: every request carries the generator's first proof.
 The check is the execution gas of `PQValidatorRegistration` minus that of the same contract with
-the check skipped, and it's the same in the three scenarios. It depends on the signature by a
-few dozen gas: `verify` alone executes in 43,995 to 44,065 gas over EthLib's four valid vectors.
-The calldata depends on the signature too, at 16 gas per nonzero byte and 4 per zero byte, and
-this one has 17 zero bytes.
+the check skipped, and it's the same in the three scenarios. `verify` alone executes in 20,447
+gas at leaf 0, where a proof of possession is, and in up to 22,865 over EthLib's other valid
+vectors, which are at other leaves. The calldata depends on the signature too, at 16 gas per
+nonzero byte and 4 per zero byte, and this one has 17 zero bytes.
 
 ## Using the bytecode
 
@@ -139,7 +182,7 @@ they are deployed, and their `.bin-runtime` can be embedded in genesis as it is,
 ### Reproducing a release
 
 Compiler settings are pinned in [`foundry.toml`](foundry.toml) (solc 0.8.38, EVM `osaka`,
-optimizer 200 runs).
+optimizer 1,000,000 runs).
 
 ```sh
 git checkout vX.Y.Z
@@ -154,6 +197,7 @@ Tests run on Amsterdam as Foundry 1.9.0 implements it (`hardfork` in `foundry.to
 contracts are compiled for Osaka, since solc 0.8.38 targets Amsterdam only in experimental mode.
 
 ```sh
+python3 scripts/generate-verifier.py   # after a change to the verifier's template or script
 forge build
 forge test
 forge fmt
