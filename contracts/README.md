@@ -1,12 +1,13 @@
 # Contracts
 
-Foundry project for the PQ registration contracts. Run all commands from this directory.
+Foundry project for the PQ registration and exit contracts. Run all commands from this directory.
 
 | Contract | Description |
 | --- | --- |
 | `PQValidatorRegistration` | [EIP-8483](https://github.com/ethereum/EIPs/pull/12609)'s PQ registration request contract, with a leanXMSS proof of possession. |
 | `PQBuilderRegistration` | EIP-8483's builder PQ registration request contract, with a leanXMSS proof of possession. |
-| `LeanXmss` | The leanXMSS verifier, a library both contracts inline. |
+| `PQValidatorExit` | Voluntary exit requests signed by the validator's leanXMSS key, which anyone can submit. |
+| `LeanXmss` | The leanXMSS verifier, a library the contracts inline. |
 
 `PQValidatorRegistration` and `PQBuilderRegistration` are EIP-8483's two request contracts,
 written in Solidity, with one addition: a request carries a leanXMSS proof of possession of the
@@ -14,6 +15,7 @@ XMSS key it registers, and the contract verifies it (`LeanXmss`, about 45k gas),
 reverts and never reaches the consensus layer. The rest is the EIP's: the dispatch, the fee, the
 limits, the storage layout, the log and the system call's output. The consensus layer honors a
 request only from the validator's withdrawal address, or the builder's execution address.
+`PQValidatorExit` reuses that queue (`RequestQueue`) with its own request and limits, below.
 
 ## Requests
 
@@ -41,6 +43,39 @@ cast send "$VALIDATOR_REGISTRATION" \
   "$(cast concat-hex "$VALIDATOR_PUBKEY" "$XMSS_PUBKEY" "$VRF_DATA" "$SIGNATURE")" --value "$fee"
 ```
 
+## Voluntary exits
+
+`PQValidatorExit` lets the holder of a validator's registered XMSS key exit the validator. The
+request carries the key's exit signature, which the contract verifies, so anyone can submit it,
+for example a relayer holding a signed exit. The caller grants nothing; it is recorded only as in
+the other request contracts.
+
+| Request calldata | `log0` data and system call records | Target / added / dequeued per block |
+| --- | --- | --- |
+| 2444 bytes: `validator_index (u64 BE, 8) ‖ xmss_pubkey (32) ‖ signature (2404)` | 60 bytes each: `source_address ‖ validator_index ‖ xmss_pubkey` | 2 / 16 / 16 |
+
+The signature must be at leaf 1, over
+`M = keccak256(EXIT_DOMAIN ‖ chain_id ‖ validator_index ‖ xmss_pubkey)`, with
+`EXIT_DOMAIN = keccak256("leanXMSS voluntary exit v1")`. [`xmss/`](../xmss/#voluntary-exit)
+specifies it. The limits are [EIP-7002](https://eips.ethereum.org/EIPS/eip-7002)'s for
+withdrawal requests, and the fee, queue and system call are the registration contracts'.
+
+The consensus layer would process the records as a new [EIP-7685](https://eips.ethereum.org/EIPS/eip-7685)
+request type (provisionally `0x08`, after EIP-8483's `0x06` and `0x07`): it ignores a record
+unless `validator_index` exists and the leanXMSS key registered for it equals `xmss_pubkey`, and
+otherwise applies the checks of a voluntary exit (the validator is active, has not initiated an
+exit, has been active for `SHARD_COMMITTEE_PERIOD`, and has no pending partial withdrawal)
+before `initiate_validator_exit`. Checking the registered key at the index binds the exit to one
+validator without a key-to-index map, and keeps it valid only while that key stays registered.
+
+- Replay is harmless: a signed exit can be submitted again, and the consensus layer ignores an
+  exit it has already applied.
+- A signed exit can't be revoked, except by registering another key for the validator before the
+  record is processed.
+- Leaf 1 signs only the exit. Signing isn't assumed deterministic, so a key signs its exit at
+  most once; a lost exit signature can't be replaced. Two signatures at leaf 1 would let anyone
+  forge others there, but those would only exit validators that registered the same key.
+
 ## Fee, queue and system call
 
 The contracts are called with raw calldata, not the Solidity ABI: they have no ABI functions,
@@ -60,8 +95,8 @@ first request of a block folds the last block's count into the excess, decayed b
 every block since, and the requests above the target raise the fee within a block. The fee is
 `fake_exponential(1, excess, 17)` wei. Storage slots 0 to 4 hold the excess, the count of
 requests added in the last block with requests, the queue head and tail, and that block's
-number. Request `i` takes five slots from `5 + 5i` for validators, and four from `5 + 4i` for
-builders.
+number. Request `i` takes five slots from `5 + 5i` for validators, four from `5 + 4i` for
+builders, and three from `5 + 3i` for exits.
 
 The system call dequeues a full block of 1024 records from cold storage with about 11.7M of its
 30M gas, against 11.3M for the EIP's bytecode. What the proof adds to a registration is
@@ -75,7 +110,9 @@ argument, or the commit given. `test/RegistrationQueue.t.sol` sends every call t
 signature only in this repository's request, and checks that they agree on success, return data,
 logs, storage and balance, from any storage, including states no sequence of calls reaches.
 `test/ProofOfPossession.t.sol` checks what the proof binds, on proofs from the generator in
-[`xmss/`](../xmss/).
+[`xmss/`](../xmss/). `test/ValidatorExit.t.sol` checks the exit contract on exits from the same
+generator: what an exit binds, its record, and its limits. Its queue is the one compared against
+the EIP above.
 
 ## Gas of the proof of possession
 

@@ -7,5 +7,5 @@ import {PQValidatorRegistration} from "../../src/PQValidatorRegistration.sol";
 /// scripts/measure-gas.py. Its requests still carry the signature, so its gas difference with
 /// `PQValidatorRegistration` is the cost of the check.
 contract UncheckedValidatorRegistration is PQValidatorRegistration {
-    function _checkProofOfPossession(bytes calldata) internal pure override {}
+    function _checkSignature(bytes calldata) internal pure override {}
 }

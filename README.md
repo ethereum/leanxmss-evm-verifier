@@ -2,12 +2,13 @@
 
 Registration contracts for the post-quantum keys of validators and builders: an implementation of
 [EIP-8483](https://github.com/ethereum/EIPs/pull/12609) that also checks a leanXMSS proof of
-possession of each key.
+possession of each key. A third contract takes voluntary exits signed by a validator's registered
+leanXMSS key.
 
 | Directory | Contents |
 | --- | --- |
 | [`contracts/`](contracts/) | Foundry project: contracts, tests against the EIP's bytecode, bytecode export. Released bytecode docs live here. |
-| [`xmss/`](xmss/) | leanXMSS, the signature scheme of the proofs of possession. EthLib specifies it. This directory says which EthLib commit is followed here, defines the proof-of-possession format, and has the generator for the contract test vectors. |
+| [`xmss/`](xmss/) | leanXMSS, the signature scheme of the proofs of possession and exits. EthLib specifies it. This directory says which EthLib commit is followed here, defines the proof-of-possession and exit formats, and has the generator for the contract test vectors. |
 
 ## Releases
 
