@@ -2,6 +2,9 @@ module
 
 public import EthLib.Cryptography.Proofs.Xmss.Verify
 public import EthLib.Execution.Proofs.Evm.Logic
+public import LeanXmssFv.Code.Harness
+public import LeanXmssFv.Code.Validator
+public import LeanXmssFv.Code.Builder
 
 /-!
 # The leanXMSS verifier of the registration contracts, proven against EthLib
