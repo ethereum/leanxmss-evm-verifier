@@ -47,7 +47,7 @@ same message, as in EIP-8450, and one proof registers the key for both.
 | Path | Contents | Written by |
 | --- | --- | --- |
 | `contracts/test/vectors/ethlib/xmss/` | EthLib's `verify` and `signature_index` cases | `./sync-vectors.sh <ethlib-commit>` |
-| `contracts/test/vectors/leanxmss_pop.json` | Proofs of possession for the registration tests | `cargo run --release` |
+| `contracts/test/vectors/leanxmss_pop.json` | Proofs of possession for the contract tests, here and in sys-asm | `cargo run --release` |
 
 ```sh
 ./sync-vectors.sh <ethlib-commit>   # copies EthLib's cases at that commit and records it
