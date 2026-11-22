@@ -1,12 +1,13 @@
 # pq-staking-contracts
 
-Registration contracts for the post-quantum keys of validators and builders: an implementation of
-[EIP-8483](https://github.com/ethereum/EIPs/pull/12609) that also checks a leanXMSS proof of
-possession of each key.
+The contract that checks the leanXMSS proofs of possession of post-quantum key registrations. The
+registration contracts of validators and builders, which implement
+[EIP-8483](https://github.com/ethereum/EIPs/pull/12609) in
+[ethereum/sys-asm](https://github.com/ethereum/sys-asm), call it for every request.
 
 | Directory | Contents |
 | --- | --- |
-| [`contracts/`](contracts/) | Foundry project: contracts, tests against the EIP's bytecode, bytecode export. Released bytecode docs live here. |
+| [`contracts/`](contracts/) | Foundry project: the contract, its tests, bytecode export. Released bytecode docs live here. |
 | [`xmss/`](xmss/) | leanXMSS, the signature scheme of the proofs of possession. EthLib specifies it. This directory says which EthLib commit is followed here, defines the proof-of-possession format, and has the generator for the contract test vectors. |
 
 ## Releases

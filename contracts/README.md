@@ -1,29 +1,28 @@
 # Contracts
 
-Foundry project for the PQ registration contracts. Run all commands from this directory.
+Foundry project for the contract that checks the proofs of possession of PQ registrations. Run
+all commands from this directory.
 
 | Contract | Description |
 | --- | --- |
-| `PQValidatorRegistration` | [EIP-8483](https://github.com/ethereum/EIPs/pull/12609)'s PQ registration request contract, with a leanXMSS proof of possession. |
-| `PQBuilderRegistration` | EIP-8483's builder PQ registration request contract, with a leanXMSS proof of possession. |
-| `LeanXmss` | The leanXMSS verifier, a library both contracts inline. It is [generated](#the-verifier). |
+| `PQProofOfPossession` | Checks the leanXMSS proof of possession of a PQ registration request. |
+| `LeanXmss` | The leanXMSS verifier, a library that `PQProofOfPossession` inlines. It is [generated](#the-verifier). |
 
-`PQValidatorRegistration` and `PQBuilderRegistration` are EIP-8483's two request contracts,
-written in Solidity, with one addition: a request carries a leanXMSS proof of possession of the
-XMSS key it registers, and the contract verifies it (`LeanXmss`, about 20k gas), so an invalid one
-reverts and never reaches the consensus layer. The rest is the EIP's: the dispatch, the fee, the
-limits, the storage layout, the log and the system call's output. The consensus layer honors a
-request only from the validator's withdrawal address, or the builder's execution address.
+[EIP-8483](https://github.com/ethereum/EIPs/pull/12609)'s two request contracts are in
+[ethereum/sys-asm](https://github.com/ethereum/sys-asm), written in geas: `src/pq_registrations`
+for validators and `src/pq_builder_registrations` for builders. They are the EIP's contracts with
+one addition: a request carries a leanXMSS proof of possession of the XMSS key it registers, so
+an invalid one reverts and never reaches the consensus layer. To check the proof they call
+`PQProofOfPossession` with a STATICCALL, and revert unless the call succeeds and returns the
+32-byte word 1.
 
-## Requests
+## The proof of possession
 
-A request is the EIP's input followed by the 2404-byte signature. The XMSS public key is the
-first 32 bytes of `pq_data`, all of it for builders. The signature is neither stored nor logged.
-
-| Contract | Request calldata | `log0` data and system call records | Target / added / dequeued per block |
-| --- | --- | --- | --- |
-| `PQValidatorRegistration` | 2516 bytes: `validator_pubkey (48) ‖ pq_data (64) ‖ signature (2404)` | 132 bytes each: `source_address ‖ validator_pubkey ‖ pq_data` | 128 / 256 / 1024 |
-| `PQBuilderRegistration` | 2484 bytes: `builder_pubkey (48) ‖ pq_data (32) ‖ signature (2404)` | 100 bytes each: `source_address ‖ builder_pubkey ‖ pq_data` | 2 / 16 / 16 |
+`PQProofOfPossession` is called with raw calldata, not the Solidity ABI. It takes 2484 bytes,
+`bls_pubkey (48) ‖ xmss_pubkey (32) ‖ signature (2404)`. That is a builder request as it is, and
+a validator request without the second half of `pq_data`, which the proof doesn't sign. It
+returns the 32-byte word 1 for a proof of possession and reverts with no data for anything else,
+including calldata of another length and a call that carries value. It has no storage.
 
 The proof is a signature at leaf 0 of
 `M = keccak256(DOMAIN ‖ chain_id ‖ bls_pubkey ‖ xmss_pubkey)`, which binds the XMSS key to one
@@ -33,49 +32,12 @@ leanXMSS is specified in EthLib's
 [`EthLib/Cryptography/Xmss`](https://github.com/ethereum/EthLib/tree/master/EthLib/Cryptography/Xmss);
 [`xmss/`](../xmss/) has the commit this repository follows and the proof-of-possession format.
 
-Example validator registration with `cast`, paying the current fee:
+The verifier's address is a constant in the geas bytecode. It isn't chosen yet, so the geas
+contracts use the placeholder `0x848300000000000000000000000000000000ffff`.
 
-```sh
-fee=$(cast to-dec "$(cast call "$VALIDATOR_REGISTRATION" 0x)")
-cast send "$VALIDATOR_REGISTRATION" \
-  "$(cast concat-hex "$VALIDATOR_PUBKEY" "$XMSS_PUBKEY" "$VRF_DATA" "$SIGNATURE")" --value "$fee"
-```
-
-## Fee, queue and system call
-
-The contracts are called with raw calldata, not the Solidity ABI: they have no ABI functions,
-reverts carry no data, and they dispatch on the caller and the calldata's size, as in the EIP:
-
-- System call. At the end of every block the client calls each contract from
-  `0xfffffffffffffffffffffffffffffffffffffffe`. The call dequeues up to the per-block maximum in
-  FIFO order and returns the records as raw bytes, the EIP-7685 request data. With calldata it
-  also disables the queue, setting the excess to `2**256 - 1`; without, it re-enables a disabled
-  queue with a fresh fee state.
-- Fee getter. Empty calldata and no value returns the fee as a 32-byte big-endian word.
-- Request. The calldata above, paying at least the fee. The contract keeps the fee and any
-  overpayment.
-
-As in the EIP, the fee state is updated when a request is added, not by the system call: the
-first request of a block folds the last block's count into the excess, decayed by the target for
-every block since, and the requests above the target raise the fee within a block. The fee is
-`fake_exponential(1, excess, 17)` wei. Storage slots 0 to 4 hold the excess, the count of
-requests added in the last block with requests, the queue head and tail, and that block's
-number. Request `i` takes five slots from `5 + 5i` for validators, and four from `5 + 4i` for
-builders.
-
-The system call dequeues a full block of 1024 records from cold storage with about 11.7M of its
-30M gas, against 11.3M for the EIP's bytecode. What the proof adds to a registration is
-[below](#gas-of-the-proof-of-possession).
-
-## Testing against the EIP
-
-`scripts/sync-eip8483.sh` copies the EIP's runtime bytecode for both contracts into
-`test/vectors/eip8483/`, with the ethereum/EIPs commit it read: the latest version without an
-argument, or the commit given. `test/RegistrationQueue.t.sol` sends every call to both, with the
-signature only in this repository's request, and checks that they agree on success, return data,
-logs, storage and balance, from any storage, including states no sequence of calls reaches.
-`test/ProofOfPossession.t.sol` checks what the proof binds, on proofs from the generator in
-[`xmss/`](../xmss/).
+`test/PQProofOfPossession.t.sol` checks what the proof binds, on proofs from the generator in
+[`xmss/`](../xmss/). sys-asm tests the registration contracts with this verifier: it copies the
+bytecode and the proofs from a checkout of this repository.
 
 ## The verifier
 
@@ -119,47 +81,27 @@ FOUNDRY_PROFILE=deep forge test --match-contract LeanXmssReferenceTest --fuzz-se
 
 ## Gas of the proof of possession
 
-`scripts/measure-gas.py` measures what the proof adds to a validator registration, on anvil, on
-Amsterdam as Foundry 1.9.0 implements it. It sends one add to the EIP's bytecode, and the same
-add with the signature to `PQValidatorRegistration` and to that contract with the check skipped
-(`test/helpers/Unchecked.sol`), in the three scenarios of the table below. It checks each
-transaction's gasUsed against its intrinsic gas, calldata floor and traced execution, and prints
-every number. `test/VerifyGas.t.sol` snapshots `verify` alone in `snapshots/verify.json`.
+`test/VerifyGas.t.sol` snapshots `verify` alone in `snapshots/verify.json`. It executes in 20,447
+gas at leaf 0, where a proof of possession is, and in up to 22,865 over EthLib's other valid
+vectors, which are at other leaves.
+
+`scripts/measure-gas.py` measures the contract on anvil, on Amsterdam as Foundry 1.9.0 implements
+it. It sends the generator's first proof to `PQProofOfPossession` in a transaction, checks its
+gasUsed against its intrinsic gas, calldata floor and traced execution, and prints every number.
 
 ```sh
 python3 scripts/measure-gas.py   # needs forge and anvil
 ```
 
-gasUsed of one validator registration:
-
-| Scenario | Without the proof | With it |
-| --- | --- | --- |
-| S1: the first request ever | 907,459 | 967,235 |
-| S2: the first request of a block, on a queue used before | 222,019 | 281,795 |
-| S3: a later request in the same block | 114,030 | 182,024 |
-
-The proof adds 59,776 gas in S1 and S2:
-
-| | Gas |
-| --- | --- |
-| The signature's 2404 bytes of calldata | 38,260 |
-| This contract's add without the check, against the EIP's bytecode | 984 |
-| Checking the proof: `M`, the leaf index and the verify | 20,532 |
-| Total | 59,776 |
-
-In S3 the request pays its calldata floor, 182,024 gas, which is more than its intrinsic gas plus
-its execution, so the check adds nothing to what carrying the signature costs.
-
-These are single measurements, not averages: every request carries the generator's first proof.
-The check is the execution gas of `PQValidatorRegistration` minus that of the same contract with
-the check skipped, and it's the same in the three scenarios. `verify` alone executes in 20,447
-gas at leaf 0, where a proof of possession is, and in up to 22,865 over EthLib's other valid
-vectors, which are at other leaves. The calldata depends on the signature too, at 16 gas per
-nonzero byte and 4 per zero byte, and this one has 17 zero bytes.
+The contract executes in 20,790 gas: `M`, the leaf index, the verify and the return. A
+registration pays that inside its STATICCALL, on top of the call itself and of the signature's
+calldata. The 2404 bytes of this proof cost 38,260 gas, at 16 gas per nonzero byte and 4 per zero
+byte, and it has 17 zero bytes. At the calldata floor of 64 gas per byte they cost 153,856.
+These are single measurements, not averages.
 
 ## Using the bytecode
 
-Every [GitHub release](https://github.com/eth-act/pq-staking-contracts/releases) ships these assets:
+Every [GitHub release](https://github.com/ethereum/pq-staking-contracts/releases) ships these assets:
 
 | File | Contents |
 | --- | --- |
@@ -176,8 +118,8 @@ settings change.
 Contracts must not use `immutable`: the runtime bytecode would lack the constructor-set
 values, so the export script rejects them.
 
-The contracts write no storage at deployment, as in EIP-8483, so they take requests as soon as
-they are deployed, and their `.bin-runtime` can be embedded in genesis as it is, with no storage.
+`PQProofOfPossession` has no constructor and no storage, so its `.bin-runtime` can be embedded in
+genesis as it is.
 
 ### Reproducing a release
 

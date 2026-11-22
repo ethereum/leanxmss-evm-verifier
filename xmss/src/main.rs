@@ -44,8 +44,8 @@ fn pop_message(chain_id: u64, bls_pubkey: &BlsPubkey, xmss_pubkey: &[u8; PUB_KEY
     hash(&[&pop_domain()[..], &word(chain_id), bls_pubkey, xmss_pubkey].concat())
 }
 
-/// 48 bytes derived from a label, standing in for a BLS public key. The registration contracts
-/// don't check that it's a valid one.
+/// 48 bytes derived from a label, standing in for a BLS public key. `PQProofOfPossession` doesn't
+/// check that it's a valid one.
 fn bls_pubkey(label: &str) -> BlsPubkey {
     let high = hash(format!("pq-staking-contracts BLS key {label}").as_bytes());
     let mut pubkey = [0; 48];
@@ -140,8 +140,9 @@ impl Proof {
     }
 }
 
-/// Proofs of possession for the registration tests. They don't depend on the role: a proof that
-/// registers an XMSS key for a BLS key works in both the validator and the builder contract.
+/// Proofs of possession for the tests of `PQProofOfPossession`. sys-asm copies them for the tests
+/// of its registration contracts. They don't depend on the role: a proof that registers an XMSS
+/// key for a BLS key works in both the validator and the builder contract.
 fn contract_vectors() -> String {
     let [mut key_a, mut key_b, mut key_c, mut key_d] = thread::scope(|s| {
         ["A", "B", "C", "D"]
@@ -155,11 +156,12 @@ fn contract_vectors() -> String {
         key_c.proof(&bls_pubkey("2")),
     ];
 
-    // The first proof's message signed at leaf 1. The signature is valid, but the contracts must
-    // reject it because a proof of possession must be at leaf 0.
+    // The first proof's message signed at leaf 1. The signature is valid, but
+    // `PQProofOfPossession` must reject it because a proof of possession must be at leaf 0.
     let wrong_leaf = key_a.proof_of(&proofs[0].bls_pubkey, proofs[0].message, POP_LEAF + 1);
 
-    // A signature at leaf 0 of the message without the domain, which the contracts must reject.
+    // A signature at leaf 0 of the message without the domain, which `PQProofOfPossession` must
+    // reject.
     let bls = bls_pubkey("3");
     let message = hash(&[&word(FORGE_CHAIN_ID)[..], &bls, &key_d.pubkey].concat());
     let no_domain = key_d.proof_of(&bls, message, POP_LEAF);
