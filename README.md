@@ -1,9 +1,9 @@
-# pq-staking-contracts
+# leanxmss-evm-verifier
 
-The contract that checks the leanXMSS proofs of possession of post-quantum key registrations. The
-registration contracts of validators and builders, which implement
-[EIP-8483](https://github.com/ethereum/EIPs/pull/12609) in
-[ethereum/sys-asm](https://github.com/ethereum/sys-asm), call it for every request.
+A leanXMSS signature verifier for the EVM, and the contract that uses it to check the proofs of
+possession of post-quantum key registrations. The registration contracts of validators and
+builders, which implement [EIP-8483](https://github.com/ethereum/EIPs/pull/12609) in
+[ethereum/sys-asm](https://github.com/ethereum/sys-asm), call that contract for every request.
 
 | Directory | Contents |
 | --- | --- |
