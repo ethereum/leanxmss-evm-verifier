@@ -93,15 +93,15 @@ gasUsed against its intrinsic gas, calldata floor and traced execution, and prin
 python3 scripts/measure-gas.py   # needs forge and anvil
 ```
 
-The contract executes in 20,790 gas: `M`, the leaf index, the verify and the return. A
+The contract executes in 20,867 gas: `M`, the leaf index, the verify and the return. A
 registration pays that inside its STATICCALL, on top of the call itself and of the signature's
-calldata. The 2404 bytes of this proof cost 38,260 gas, at 16 gas per nonzero byte and 4 per zero
-byte, and it has 17 zero bytes. At the calldata floor of 64 gas per byte they cost 153,856.
+calldata. The 2404 bytes of this proof cost 38,356 gas, at 16 gas per nonzero byte and 4 per zero
+byte, and it has 9 zero bytes. At the calldata floor of 64 gas per byte they cost 153,856.
 These are single measurements, not averages.
 
 ## Using the bytecode
 
-Every [GitHub release](https://github.com/ethereum/pq-staking-contracts/releases) ships these assets:
+Every [GitHub release](https://github.com/ethereum/leanxmss-evm-verifier/releases) ships these assets:
 
 | File | Contents |
 | --- | --- |

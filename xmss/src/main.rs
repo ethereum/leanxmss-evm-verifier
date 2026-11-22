@@ -32,7 +32,7 @@ fn main() {
 
 /// A key's seed, from a label: these keys are public.
 fn seed(label: &str) -> Seed {
-    hash(format!("pq-staking-contracts {label}").as_bytes())
+    hash(format!("leanxmss-evm-verifier {label}").as_bytes())
 }
 
 fn pop_domain() -> [u8; 32] {
@@ -47,7 +47,7 @@ fn pop_message(chain_id: u64, bls_pubkey: &BlsPubkey, xmss_pubkey: &[u8; PUB_KEY
 /// 48 bytes derived from a label, standing in for a BLS public key. `PQProofOfPossession` doesn't
 /// check that it's a valid one.
 fn bls_pubkey(label: &str) -> BlsPubkey {
-    let high = hash(format!("pq-staking-contracts BLS key {label}").as_bytes());
+    let high = hash(format!("leanxmss-evm-verifier BLS key {label}").as_bytes());
     let mut pubkey = [0; 48];
     pubkey[..32].copy_from_slice(&high);
     pubkey[32..].copy_from_slice(&hash(&high)[..16]);
