@@ -58,6 +58,15 @@ The generator (`src/main.rs`) signs with leanVM's Rust implementation of leanXMS
 pinned in [`Cargo.toml`](Cargo.toml). leanVM tests it on the same EthLib cases. The outputs are
 committed; CI does not regenerate them.
 
+A proof signs the chain ID, so tests that run on another chain need vectors of their own:
+
+```sh
+cargo run --release -- --chain-id 1 --proofs 17 --out <path>
+```
+
+`--proofs` sets the number of valid proofs, up to 25. Leaf 0 of a key signs for one chain only, so
+the keys of any chain but 31337 have the chain ID in their seed.
+
 To follow a newer spec, run `./sync-vectors.sh` with the new EthLib commit, and fix the verifier
 until the tests pass: first `contracts/test/helpers/LeanXmssReference.sol`, which is written with
 loops, and then the template and the script that generate `contracts/src/LeanXmss.sol`. If the
