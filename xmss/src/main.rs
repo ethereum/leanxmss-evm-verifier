@@ -31,8 +31,9 @@ const CONTRACT_PROOFS: usize = 3;
 /// (`PQ_POSSESSION_XMSS_INDEX`).
 const POP_LEAF: LeafIndex = 0;
 
-/// The letter of the key that signs the message without the domain. The valid proofs take the
-/// other letters in order, so adding proofs doesn't change the keys of the first ones.
+/// Test keys are named by letter. Key D signs `noDomain`, the invalid proof whose message lacks
+/// the domain, so it can't also sign a valid proof: both would be at leaf 0. The valid proofs use
+/// the other letters in order (A, B, C, E, ...), so proof `i` has the same key for any `--proofs`.
 const NO_DOMAIN_KEY: char = 'D';
 
 type BlsPubkey = [u8; 48];
