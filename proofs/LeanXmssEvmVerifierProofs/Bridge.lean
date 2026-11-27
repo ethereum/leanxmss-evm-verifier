@@ -37,11 +37,14 @@ theorem shr_keccak_lanes (a : Array UInt64) :
       (EthLib.Cryptography.Xmss.hash a).bytes :=
     (EthLib.Cryptography.Hash.Keccak.keccak256Lanes_lanesBytes a).symm
   -- Its 32 bytes are the 16 bytes of the first half, then those of the second.
-  have hsplit : (EthLib.Cryptography.Xmss.hash a).bytes.toList = (halfOf 0 (EthLib.Cryptography.Xmss.hash a)).bytes.toList ++
-      (halfOf 1 (EthLib.Cryptography.Xmss.hash a)).bytes.toList := rfl
+  have hsplit : (EthLib.Cryptography.Xmss.hash a).bytes.toList =
+      (halfOf 0 (EthLib.Cryptography.Xmss.hash a)).bytes.toList ++
+        (halfOf 1 (EthLib.Cryptography.Xmss.hash a)).bytes.toList := rfl
   apply BitVec.eq_of_toNat_eq
-  have hlo := EthLib.Base.ByteOrder.ofBE_lt (halfOf 1 (EthLib.Cryptography.Xmss.hash a)).bytes.toList
-  have hhi := EthLib.Base.ByteOrder.ofBE_lt (halfOf 0 (EthLib.Cryptography.Xmss.hash a)).bytes.toList
+  have hlo := EthLib.Base.ByteOrder.ofBE_lt
+    (halfOf 1 (EthLib.Cryptography.Xmss.hash a)).bytes.toList
+  have hhi := EthLib.Base.ByteOrder.ofBE_lt
+    (halfOf 0 (EthLib.Cryptography.Xmss.hash a)).bytes.toList
   simp only [Vector.length_toList] at hlo hhi
   simp only [bitwiseShr, keccak, hk, digitWord, BitVec.toNat_ofNat]
   have h128 : (128 : Nat) % 2 ^ 256 = 128 := by decide
