@@ -54,3 +54,62 @@ jobs:
 
       - name: EthLib vectors
         run: xmss/sync-vectors.sh --check
+
+  proofs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.9.0
+
+      - name: Build the contracts
+        working-directory: contracts
+        run: forge build --skip test --skip script
+
+      # The harness calls the verifier for the proofs of the library; it is never deployed.
+      - name: Build the harness
+        working-directory: proofs/harness
+        run: forge build
+
+      # The proofs are about the bytecodes in proofs/, so they must be what forge builds.
+      - name: Proved bytecode
+        run: python3 proofs/scripts/generate-code.py --check
+
+      # The verifier as one block, with its jump targets moved, is read from both bytecodes.
+      - name: Verifier block
+        run: python3 proofs/scripts/generate-block.py --check
+
+      # The lemmas of the chain blocks are written from that bytecode, so they must match it.
+      - name: Generated proofs
+        run: python3 proofs/scripts/generate-chains.py --check
+
+      # So are the lemmas of the Merkle paths.
+      - name: Generated paths
+        run: python3 proofs/scripts/generate-paths.py --check
+
+      - name: Install elan
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      # EthLib and Mathlib take long to build, so their builds are kept per pinned commit.
+      - uses: actions/cache@v4
+        with:
+          path: proofs/.lake/packages
+          key: lake-${{ hashFiles('proofs/lake-manifest.json', 'proofs/lean-toolchain') }}
+
+      - name: Mathlib cache
+        working-directory: proofs
+        run: lake exe cache get
+
+      # Two threads per file keep the files that build at once within the runner's 16 GB.
+      - name: Proofs
+        working-directory: proofs
+        env:
+          LEAN_NUM_THREADS: "2"
+        run: lake build --wfail
