@@ -79,7 +79,8 @@ while IFS= read -r -d '' artifact; do
         solc: .metadata.compiler.version,
         evmVersion: .metadata.settings.evmVersion,
         optimizer: .metadata.settings.optimizer,
-        viaIR: (.metadata.settings.viaIR // false)
+        viaIR: (.metadata.settings.viaIR // false),
+        metadata: .metadata.settings.metadata
       }' "$artifact")
   fi
 
