@@ -1,6 +1,6 @@
 module
 
-public import LeanXmssEvmVerifierProofs.Code
+public import LeanXmssEvmVerifierProofs.Prologue
 public import LeanXmssEvmVerifierProofs.Generic
 
 /-!
@@ -47,29 +47,42 @@ def MEMORY_FREE : ByteArray :=
   memoryWrite (memoryExtend .empty (extendMemory 0 [(0x40, 32)]).expandBy) 0x40 (wordBytes 0x80)
 
 /-- The first three opcodes set the free memory pointer to 0x80. -/
-theorem setFree (hgas : 18 ≤ gas) :
-    Hoare fork (At CODE message 0 [] .empty gas state substate returnData)
-      (At CODE message 5 [] MEMORY_FREE (gas - 18) state substate returnData) := by
-  evm_step [CODE, CODE_NUMBER, CODE_SIZE]
-  evm_step [CODE, CODE_NUMBER, CODE_SIZE]
+theorem setFree {code : ByteArray} [PrologueCode code] (hgas : 18 ≤ gas) :
+    Hoare fork (At code message 0 [] .empty gas state substate returnData)
+      (At code message 5 [] MEMORY_FREE (gas - 18) state substate returnData) := by
+  pro_step
+  pro_step
   have hcost : (extendMemory ByteArray.empty.size [(64#256, 32)]).cost = 9 := by decide
-  refine Triple.seq (mstore (by evm_code [CODE, CODE_NUMBER, CODE_SIZE])
-    (by evm_code [CODE, CODE_NUMBER, CODE_SIZE]) (by rw [hcost]; omega)) ?_
+  refine Triple.seq (mstore (by pro_code)
+    (by pro_code) (by rw [hcost]; omega)) ?_
   exact reshape rfl rfl (by rw [hcost]; omega)
 
 /-- A call with value reverts with no output, and keeps the state and the substate. -/
-theorem value_reverts (hfork : .fusaka ≤ fork) (hvalue : message.value ≠ 0) (hgas : 100 ≤ gas) :
-    Spec fork (At CODE message 5 [] MEMORY_FREE gas state substate returnData)
+theorem value_reverts {code : ByteArray} [PrologueCode code] (hfork : .fusaka ≤ fork)
+    (hvalue : message.value ≠ 0) (hgas : 100 ≤ gas) :
+    Spec fork (At code message 5 [] MEMORY_FREE gas state substate returnData)
       (fun evm => Answer state none evm ∧ evm.substate = substate) := by
-  evm_step [CODE, CODE_NUMBER, CODE_SIZE]
-  evm_step [CODE, CODE_NUMBER, CODE_SIZE]
-  evm_step [CODE, CODE_NUMBER, CODE_SIZE]
-  evm_step [CODE, CODE_NUMBER, CODE_SIZE]
+  pro_step
+  pro_step
+  pro_step
+  pro_step
   have hz : isZero message.value = 0 := by simp only [isZero]; simpa using hvalue
-  evm_step [CODE, CODE_NUMBER, CODE_SIZE]
-  exact revertEmpty' (Nat.le_trans (by decide) hfork) (by evm_code [CODE, CODE_NUMBER, CODE_SIZE])
-    (by evm_code [CODE, CODE_NUMBER, CODE_SIZE]) (by evm_code [CODE, CODE_NUMBER, CODE_SIZE])
-    (by evm_code [CODE, CODE_NUMBER, CODE_SIZE]) (by simp [STACK_LIMIT]) (by omega)
+  pro_step
+  exact revertEmpty' (Nat.le_trans (by decide) hfork) (by pro_code)
+    (by pro_code) (by pro_code)
+    (by pro_code) (by simp [STACK_LIMIT]) (by omega)
+
+/-- The memory after the free memory pointer is set holds 0x80 at 0x40. -/
+theorem known_free {code : ByteArray} {pc : Nat} {stack : List U256} {evm : Evm fork Nat}
+    (h : At code message pc stack MEMORY_FREE gas state substate returnData evm) :
+    Known code message pc stack 96 [(64, wordBytes 0x80)] gas state substate returnData evm := by
+  have hm : evm.memory = MEMORY_FREE := h.2.2.2.2.2.1
+  refine ⟨by rw [hm]; exact h, by rw [hm]; decide, by decide, ?_⟩
+  intro fact hfact
+  simp only [List.mem_singleton] at hfact
+  subst hfact
+  rw [hm]
+  exact holds_memoryWrite (by decide)
 
 /-- With no value and 2484 bytes of calldata, the code checks both and goes on at byte 55. -/
 theorem checks (hfork : .fusaka ≤ fork) (hvalue : message.value = 0)

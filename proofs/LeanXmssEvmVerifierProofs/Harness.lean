@@ -72,12 +72,12 @@ theorem harnessAnswers {fork : Fork} (hfork : .fusaka ≤ fork) {message : Messa
     Nat.mod_eq_of_lt hdata
   unfold HARNESS_GAS_BOUND at hgas
   -- The free memory pointer.
-  refine Spec.seq (harnessSetFree (by omega)) ?_
+  refine Spec.seq (setFree (by omega)) ?_
   by_cases hv : message.value = 0
   rotate_left
   · -- A call with value reverts.
     rw [harnessAnswer, ite_eq_right fun h => hv h.1]
-    exact harnessValueReverts hfork hv (by omega)
+    exact value_reverts hfork hv (by omega)
   refine Spec.seq (harnessToKey hfork hv (by omega)) ?_
   by_cases h32 : 32 ≤ message.data.size
   rotate_left
@@ -112,7 +112,7 @@ theorem harnessAnswers {fork : Fork} (hfork : .fusaka ≤ fork) {message : Messa
     (by simp [isZero, greaterThan])
     (by evm_dest [HARNESS_CODE, HARNESS_CODE_NUMBER, HARNESS_CODE_SIZE]) (by omega)) ?_
   refine Spec.seq (harnessToVerifier (by omega)) ?_
-  refine Spec.seq (Triple.of_imp fun _ h => harnessKnownFree h) ?_
+  refine Spec.seq (Triple.of_imp fun _ h => known_free h) ?_
   -- The size of the signature is the size of the calldata less 64.
   have hlen :
       (sub (BitVec.ofNat 256 message.data.size) 64#256).toNat = message.data.size - 64 := by

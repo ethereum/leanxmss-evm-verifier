@@ -52,16 +52,6 @@ macro_rules
   | `(tactic| hx_code) => `(tactic| evm_code [HARNESS_CODE, HARNESS_CODE_NUMBER,
       HARNESS_CODE_SIZE])
 
-/-- The first three opcodes set the free memory pointer to 0x80. -/
-theorem harnessSetFree (hgas : 18 ≤ gas) :
-    Hoare fork (At HARNESS_CODE message 0 [] .empty gas state substate returnData)
-      (At HARNESS_CODE message 5 [] MEMORY_FREE (gas - 18) state substate returnData) := by
-  hx_step
-  hx_step
-  have hcost : (extendMemory ByteArray.empty.size [(64#256, 32)]).cost = 9 := by decide
-  refine Triple.seq (mstore (by hx_code) (by hx_code) (by rw [hcost]; omega)) ?_
-  exact reshape rfl rfl (by rw [hcost]; omega)
-
 /-- With no value, the harness calls the slice helper to cut the key, the first 32 bytes. -/
 theorem harnessToKey {memory : ByteArray} (hfork : .fusaka ≤ fork) (hv : message.value = 0)
     (hgas : 57 ≤ gas) :
@@ -194,33 +184,6 @@ theorem harnessToVerifier {memory : ByteArray} (hgas : 12 ≤ gas) :
         memory (gas - 12) state substate returnData) := by
   iterate 3 hx_step
   exact reshape rfl rfl rfl
-
-/-- A call with value reverts with no output, and keeps the state and the substate. -/
-theorem harnessValueReverts (hfork : .fusaka ≤ fork) (hvalue : message.value ≠ 0)
-    (hgas : 100 ≤ gas) :
-    Spec fork (At HARNESS_CODE message 5 [] MEMORY_FREE gas state substate returnData)
-      (fun evm => Answer state none evm ∧ evm.substate = substate) := by
-  have hz : isZero message.value = 0 := by simp only [isZero]; simpa using hvalue
-  iterate 5 hx_step
-  exact revertEmpty' (Nat.le_trans (by decide) hfork)
-    (by hx_code)
-    (by hx_code)
-    (by hx_code)
-    (by hx_code)
-    (by simp [STACK_LIMIT]) (by omega)
-
-/-- The memory after the free memory pointer is set holds 0x80 at 0x40. -/
-theorem harnessKnownFree {pc : Nat} {stack : List U256} {evm : Evm fork Nat}
-    (h : At HARNESS_CODE message pc stack MEMORY_FREE gas state substate returnData evm) :
-    Known HARNESS_CODE message pc stack 96 [(64, wordBytes 0x80)] gas state substate returnData
-      evm := by
-  have hm : evm.memory = MEMORY_FREE := h.2.2.2.2.2.1
-  refine ⟨by rw [hm]; exact h, by rw [hm]; decide, by decide, ?_⟩
-  intro fact hfact
-  simp only [List.mem_singleton] at hfact
-  subst hfact
-  rw [hm]
-  exact holds_memoryWrite (by decide)
 
 /-- From byte 0x5d, the harness returns the word that the verifier left.
 

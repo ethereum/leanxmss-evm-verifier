@@ -21,18 +21,6 @@ open EthLib.Execution.State (TransactionState)
 variable {fork : Fork} {message : Message fork} {gas : Nat} {state : TransactionState}
   {substate : Substate} {returnData : ByteArray}
 
-/-- The memory after the free memory pointer is set holds 0x80 at 0x40. -/
-theorem known_free {pc : Nat} {stack : List U256} {evm : Evm fork Nat}
-    (h : At CODE message pc stack MEMORY_FREE gas state substate returnData evm) :
-    Known CODE message pc stack 96 [(64, wordBytes 0x80)] gas state substate returnData evm := by
-  have hm : evm.memory = MEMORY_FREE := h.2.2.2.2.2.1
-  refine ⟨by rw [hm]; exact h, by rw [hm]; decide, by decide, ?_⟩
-  intro fact hfact
-  simp only [List.mem_singleton] at hfact
-  subst hfact
-  rw [hm]
-  exact holds_memoryWrite (by decide)
-
 /-- `DOMAIN` as the word that the code pushes. -/
 def DOMAIN_WORD : U256 :=
   0x2fe199f0484c92004a7143682fc0a7d76126031eb8591245f6db46fed8589497#256
