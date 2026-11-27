@@ -91,31 +91,28 @@ macro_rules
   | `(tactic| lx_pcR) => `(tactic| simp only [hR.relocated.toNat_ofNat,
       hR.relocated.toNat_ofNat_zero, BLOCK, NatCode.size_ofNat, Nat.reduceLT])
 
-/-- A JUMPDEST of the verifier, pushed as a word, is a valid jump destination. -/
-theorem VerifierCode.valid (hd : BLOCK_DEST >>> i % 2 = 1) (hi : i < BLOCK.size) :
-    isValidJumpDest (validJumpDestinations code) (BitVec.ofNat 256 (base + i)).toNat = true :=
-  hR.relocated.valid hd hi
-
-/-- The first byte of the verifier, pushed as a word, is a valid jump destination. -/
-theorem VerifierCode.valid_zero (hd : BLOCK_DEST % 2 = 1) (hi : 0 < BLOCK.size) :
-    isValidJumpDest (validJumpDestinations code) (BitVec.ofNat 256 base).toNat = true :=
-  hR.relocated.valid_zero hd hi
-
-/-- A valid jump destination of the verifier, from a hypothesis or from its code. -/
+/-- A valid jump destination of the verifier, from a hypothesis or from the hypothesis `hR`. -/
 syntax "lx_destR" : tactic
 
+set_option hygiene false in
 macro_rules
-  | `(tactic| lx_destR) => `(tactic| first
-      | with_reducible assumption
-      | exact VerifierCode.valid (by simp only [BLOCK_DEST, Nat.reduceShiftRight, Nat.reduceMod])
-          (by simp only [BLOCK, NatCode.size_ofNat, Nat.reduceLT])
-      | exact VerifierCode.valid_zero (by simp only [BLOCK_DEST, Nat.reduceMod])
-          (by simp only [BLOCK, NatCode.size_ofNat, Nat.reduceLT]))
+  | `(tactic| lx_destR) => `(tactic| evm_destR hR.relocated [BLOCK, BLOCK_NUMBER, BLOCK_DEST])
+
+/-- A jump of the verifier, by EthLib's rule of relocated blocks, from the hypothesis `hR`. -/
+syntax "lx_jumpR" : tactic
+
+set_option hygiene false in
+macro_rules
+  | `(tactic| lx_jumpR) => `(tactic| evm_stepR hR.relocated [BLOCK, BLOCK_NUMBER, BLOCK_FIXED,
+      BLOCK_RELOC, BLOCK_DEST])
 
 /-- One step of the verifier, in a code that holds it from `base`, then each part of a word
 becomes a read.
 
-A jump takes its destination from a hypothesis, or from the code of the verifier. -/
+The code facts come from rewrites that find the code as an instance, which is cheaper than the
+terms of the hypothesis that EthLib's rule takes.
+
+A jump, whose destination those facts do not give, takes EthLib's rule. -/
 syntax "lx_stepR" : tactic
 
 macro_rules
@@ -124,21 +121,7 @@ macro_rules
           VerifierCode.lt_eq_zero, VerifierCode.getElem_ite, VerifierCode.getElem_ite_zero,
           VerifierCode.pushData_ite, NatCode.byteAtOrZero_ofNat, and_self, and_true, true_and,
           and_false, false_and, eq_self_iff_true, true_or, Nat.reduceEqDiff]
-      | ((refine' Triple.seq (Known.of_at fun _ => ?step) ?next
-          case step => (first
-            | (refine' Triple.seq (jump ?lt ?op ?gas ?dest) ?n
-               case lt => lx_codeR
-               case op => lx_codeR
-               case gas => evm_gas
-               case dest => lx_destR)
-            | (refine' Triple.seq (jumpi_taken ?lt ?op ?gas ?nz ?dest) ?n
-               case lt => lx_codeR
-               case op => lx_codeR
-               case gas => evm_gas
-               case nz => first | evm_decide | with_reducible assumption
-               case dest => lx_destR)) <;> evm_tidy <;>
-            exact Triple.of_imp fun _ h => h)
-         <;> evm_tidyK <;> (try lx_pcR)))
+      | lx_jumpR)
       <;> try simp (disch := first | (rw [size_wordBytes]; decide) | decide) only
         [memoryReadBytes_bufferRead, memoryReadBytes_eq_bufferRead (wordBytes _), Nat.add_zero]))
 
