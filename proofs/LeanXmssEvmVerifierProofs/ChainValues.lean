@@ -40,7 +40,7 @@ private theorem bufferRead_mk (l : List UInt8) {n : Nat} (h : n ≤ l.length) :
   simp [EthLib.Base.byteAtOrZero_eq_getD, List.getElem?_eq_getElem (by omega : j < l.length)]
 
 /-- Two byte arrays of lists, joined, are the byte array of the joined lists. -/
-private theorem mk_append_mk (a b : List UInt8) :
+theorem mk_append_mk (a b : List UInt8) :
     (⟨a.toArray⟩ ++ ⟨b.toArray⟩ : ByteArray) = ⟨(a ++ b).toArray⟩ := by
   apply ByteArray.ext
   simp
