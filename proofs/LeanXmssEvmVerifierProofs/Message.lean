@@ -42,6 +42,19 @@ def preimage (message : Message fork) : ByteArray :=
   wordBytes DOMAIN_WORD ++ wordBytes (BitVec.ofNat 256 message.blockEnv.chainId.toNat) ++
     ⟨(bufferRead message.data 0 80).toArray⟩
 
+/-! ## The message -/
+
+/-- From byte 152, 6 steps. -/
+theorem fromLeaf_152 {memory : ByteArray} (hfork : .fusaka ≤ fork) (hgas : 15 ≤ gas) :
+    Hoare fork (At CODE message 152 [loadWord message.data 48 32, 2404#256, 80#256, 2484#256, 0]
+        memory gas state substate returnData)
+      (At CODE message 191 [64#256, 0,
+        21657306918180900001620511064055223513029024957095620647678599556056777004183#256,
+        loadWord message.data 48 32, 2404#256, 80#256, 2484#256, 0] memory (gas - 15) state
+        substate returnData) := by
+  iterate 6 pop_step
+  exact reshape rfl rfl rfl
+
 /-- From byte 191, the code writes the preimage of `M` at 0x80 and hashes it. -/
 theorem hashMessage (hfork : .fusaka ≤ fork) (hgas : 149 ≤ gas) :
     Hoare fork (Known CODE message 191 [64#256, 0, DOMAIN_WORD, loadWord message.data 48 32,
