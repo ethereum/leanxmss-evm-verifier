@@ -1,4 +1,4 @@
 module
 
-public import LeanXmssEvmVerifierProofs.Message
+public import LeanXmssEvmVerifierProofs.Bridge
 public import LeanXmssEvmVerifierProofs.Main
