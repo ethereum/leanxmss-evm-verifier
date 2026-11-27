@@ -9,6 +9,7 @@ public import LeanXmssEvmVerifierProofs.ChainValues
 public import LeanXmssEvmVerifierProofs.Codeword
 public import LeanXmssEvmVerifierProofs.Digests
 public import LeanXmssEvmVerifierProofs.Harness
+public import LeanXmssEvmVerifierProofs.HarnessDispatch
 public import LeanXmssEvmVerifierProofs.Main
 public import LeanXmssEvmVerifierProofs.NodeKeys
 public import LeanXmssEvmVerifierProofs.PathBridge

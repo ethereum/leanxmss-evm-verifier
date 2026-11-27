@@ -1,7 +1,7 @@
 module
 
 public import LeanXmssEvmVerifierProofs.Verifier
-public import LeanXmssEvmVerifierProofs.HarnessCode
+public import LeanXmssEvmVerifierProofs.HarnessDispatch
 public import EthLib.Execution.Proofs.Blocks.SystemCall.Contract
 
 /-!
@@ -68,6 +68,67 @@ theorem harnessAnswers {fork : Fork} (hfork : .fusaka ≤ fork) {message : Messa
       Answer state (harnessAnswer message) evm ∧
       -- It keeps the substate: no log, no access, no refund.
       evm.substate = substate := by
-  sorry
+  have hn : (BitVec.ofNat 256 message.data.size).toNat = message.data.size :=
+    Nat.mod_eq_of_lt hdata
+  unfold HARNESS_GAS_BOUND at hgas
+  -- The free memory pointer.
+  refine Spec.seq (harnessSetFree (by omega)) ?_
+  by_cases hv : message.value = 0
+  rotate_left
+  · -- A call with value reverts.
+    rw [harnessAnswer, ite_eq_right fun h => hv h.1]
+    exact harnessValueReverts hfork hv (by omega)
+  refine Spec.seq (harnessToKey hfork hv (by omega)) ?_
+  by_cases h32 : 32 ≤ message.data.size
+  rotate_left
+  · -- Calldata shorter than the key reverts.
+    rw [harnessAnswer, ite_eq_right fun h => by have := h.2; omega]
+    exact harnessSliceReverts hfork (by simp) (by decide)
+      (by simp [isZero, greaterThan, hn]; omega) (by omega)
+  -- The key: the slice of bytes 0 to 32, then its word.
+  refine Spec.seq (harnessSlice hfork (by simp) (by decide)
+    (by simp [isZero, greaterThan, hn]; omega)
+    (by evm_dest [HARNESS_CODE, HARNESS_CODE_NUMBER, HARNESS_CODE_SIZE]) (by omega)) ?_
+  refine Spec.seq (harnessFromKey (by omega)) ?_
+  refine Spec.seq (harnessWord (by simp)
+    (by evm_dest [HARNESS_CODE, HARNESS_CODE_NUMBER, HARNESS_CODE_SIZE]) (by omega)) ?_
+  refine Spec.seq (harnessToMessage hfork (by omega)) ?_
+  by_cases h64 : 64 ≤ message.data.size
+  rotate_left
+  · -- Calldata shorter than the key and the message reverts.
+    rw [harnessAnswer, ite_eq_right fun h => h64 h.2]
+    exact harnessSliceReverts hfork (by simp) (by decide)
+      (by simp [isZero, greaterThan, hn]; omega) (by omega)
+  -- The message: the slice of bytes 32 to 64, then its word.
+  refine Spec.seq (harnessSlice hfork (by simp) (by decide)
+    (by simp [isZero, greaterThan, hn]; omega)
+    (by evm_dest [HARNESS_CODE, HARNESS_CODE_NUMBER, HARNESS_CODE_SIZE]) (by omega)) ?_
+  refine Spec.seq (harnessFromMessage (by omega)) ?_
+  refine Spec.seq (harnessWord (by simp)
+    (by evm_dest [HARNESS_CODE, HARNESS_CODE_NUMBER, HARNESS_CODE_SIZE]) (by omega)) ?_
+  refine Spec.seq (harnessToSignature hfork (by omega)) ?_
+  -- The signature: the slice from byte 64 to the end, which always fits.
+  refine Spec.seq (harnessSlice hfork (by simp) (by simp [isZero, greaterThan, hn]; omega)
+    (by simp [isZero, greaterThan])
+    (by evm_dest [HARNESS_CODE, HARNESS_CODE_NUMBER, HARNESS_CODE_SIZE]) (by omega)) ?_
+  refine Spec.seq (harnessToVerifier (by omega)) ?_
+  refine Spec.seq (Triple.of_imp fun _ h => harnessKnownFree h) ?_
+  -- The size of the signature is the size of the calldata less 64.
+  have hlen :
+      (sub (BitVec.ofNat 256 message.data.size) 64#256).toNat = message.data.size - 64 := by
+    have hle : (64#256) ≤ BitVec.ofNat 256 message.data.size := by
+      rw [BitVec.le_def, hn]
+      exact h64
+    rw [sub, BitVec.toNat_sub_of_le hle, hn]
+    rfl
+  -- The verifier, on the key, the message, and the calldata from byte 64.
+  refine Triple.seq (harnessVerifierAt (k := 40) hfork
+    (by rw [hlen]; show 64 + (message.data.size - 64) < 2 ^ 256; omega) List.mem_cons_self
+    (by simp) (by evm_dest [HARNESS_CODE, HARNESS_CODE_NUMBER, HARNESS_CODE_SIZE])
+    (by evm_omega)) ?_
+  rintro evm ⟨size, facts, g, hs, -, hg, hk⟩
+  rw [hlen, show (64#256).toNat = 64 from rfl, bufferRead_from h64] at hk
+  rw [harnessAnswer, ite_eq_left ⟨hv, h64⟩]
+  exact harnessAnswerWord hfork (by simp) hs hg evm hk
 
 end LeanXmssEvmVerifierProofs
