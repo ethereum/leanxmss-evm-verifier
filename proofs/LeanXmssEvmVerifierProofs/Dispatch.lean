@@ -26,6 +26,16 @@ variable {fork : Fork} {message : Message fork} {gas : Nat} {state : Transaction
 
 open Lean.Parser.Tactic
 
+/-- Evaluates the words of the stack that are numbers, with the rewrite rules `ls`. -/
+syntax "stack_eval" " [" simpLemma,* "]" : tactic
+
+macro_rules
+  | `(tactic| stack_eval [$ls,*]) => `(tactic| try simp only [add, sub, mul, lessThan,
+      greaterThan, equal, isZero, bitwiseAnd, bitwiseOr, bitwiseXor, BitVec.reduceAdd,
+      BitVec.reduceSub, BitVec.reduceMul, BitVec.reduceAnd, BitVec.reduceOr, BitVec.reduceXOr,
+      BitVec.reduceToNat, BitVec.reduceEq, BitVec.reduceOfNat, Nat.reduceLT, Nat.reduceGT,
+      Nat.reduceAdd, ↓reduceIte, gt_iff_lt, $ls,*])
+
 /-- One step of the code, then the words of the stack that are numbers are evaluated.
 
 The rewrite rules `ls` are used in that evaluation too. -/
@@ -34,10 +44,16 @@ syntax "pop_step" (" [" simpLemma,* "]")? : tactic
 macro_rules
   | `(tactic| pop_step) => `(tactic| pop_step [])
   | `(tactic| pop_step [$ls,*]) => `(tactic| ((evm_step [CODE, CODE_NUMBER, CODE_SIZE]) <;>
-      (try simp only [$ls,*, add, sub, mul, lessThan, greaterThan, equal, isZero, bitwiseAnd,
-        bitwiseOr, bitwiseXor, BitVec.reduceAdd, BitVec.reduceSub, BitVec.reduceMul,
-        BitVec.reduceAnd, BitVec.reduceOr, BitVec.reduceXOr, BitVec.reduceToNat, BitVec.reduceEq,
-        Nat.reduceLT, Nat.reduceGT, ↓reduceIte, gt_iff_lt])))
+      (stack_eval [$ls,*])))
+
+/-- One step of the code over a frame that knows ranges of memory, then the words of the stack
+that are numbers are evaluated, with the rewrite rules `ls`. -/
+syntax "pop_stepK" (" [" simpLemma,* "]")? : tactic
+
+macro_rules
+  | `(tactic| pop_stepK) => `(tactic| pop_stepK [])
+  | `(tactic| pop_stepK [$ls,*]) => `(tactic| ((evm_stepK [CODE, CODE_NUMBER, CODE_SIZE]) <;>
+      (stack_eval [$ls,*])))
 
 /-- The memory after the free memory pointer is set: 96 bytes, with 0x80 at 0x40. -/
 def MEMORY_FREE : ByteArray :=

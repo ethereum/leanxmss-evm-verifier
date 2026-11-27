@@ -1,4 +1,4 @@
 module
 
-public import LeanXmssEvmVerifierProofs.Index
+public import LeanXmssEvmVerifierProofs.Message
 public import LeanXmssEvmVerifierProofs.Main
