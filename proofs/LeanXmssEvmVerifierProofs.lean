@@ -10,4 +10,5 @@ public import LeanXmssEvmVerifierProofs.Codeword
 public import LeanXmssEvmVerifierProofs.Digests
 public import LeanXmssEvmVerifierProofs.Harness
 public import LeanXmssEvmVerifierProofs.Main
+public import LeanXmssEvmVerifierProofs.PathBridge
 public import LeanXmssEvmVerifierProofs.VerifyMain
