@@ -7,10 +7,10 @@
    "type": "git",
    "subDir": null,
    "scope": "",
-   "rev": "0da43b15eefef9d9df5258d6d6edca044f489c7f",
+   "rev": "af0d404b3236ef699d711053f89e371828bb572e",
    "name": "EthLib",
    "manifestFile": "lake-manifest.json",
-   "inputRev": "0da43b15eefef9d9df5258d6d6edca044f489c7f",
+   "inputRev": "af0d404b3236ef699d711053f89e371828bb572e",
    "inherited": false,
    "configFile": "lakefile.lean"
   },

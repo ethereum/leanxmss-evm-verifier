@@ -34,23 +34,12 @@ macro_rules
   | `(tactic| pop_step [$ls,*]) => `(tactic| ((evm_step [CODE, CODE_NUMBER, CODE_SIZE]) <;>
       (try simp only [$ls,*])))
 
-/-- One step of this code over a frame that knows ranges of memory, then the rewrite rules `ls`.
-
-MLOAD of the first word of a longer range takes the rule of the generic lemmas. -/
+/-- One step of this code over a frame that knows ranges of memory, then the rewrite rules `ls`. -/
 syntax "pop_stepK" (" [" simpLemma,* "]")? : tactic
 
 macro_rules
   | `(tactic| pop_stepK) => `(tactic| pop_stepK [])
-  | `(tactic| pop_stepK [$ls,*]) => `(tactic| ((first
-      | evm_stepK [CODE, CODE_NUMBER, CODE_SIZE]
-      -- MLOAD of the first 32 bytes of a longer fact.
-      | (refine' Triple.seq (mload_known_prefix ?lt ?op ?fact ?h32 ?gas) ?next
-         case lt => evm_code [CODE, CODE_NUMBER, CODE_SIZE]
-         case op => evm_code [CODE, CODE_NUMBER, CODE_SIZE]
-         case fact => evm_fact
-         case h32 => evm_size
-         case gas => evm_gas
-         evm_tidyK)) <;>
+  | `(tactic| pop_stepK [$ls,*]) => `(tactic| ((evm_stepK [CODE, CODE_NUMBER, CODE_SIZE]) <;>
       (try simp only [$ls,*])))
 
 /-- The memory after the free memory pointer is set: 96 bytes, with 0x80 at 0x40. -/
@@ -241,7 +230,8 @@ theorem badSize (hfork : .fusaka ≤ fork) (hvalue : isZero message.value ≠ 0)
       (fun evm => Answer state none evm ∧ evm.substate = substate) := by
   refine Spec.seq (badSize_5 hfork hvalue (by omega)) ?_
   refine Spec.seq (badSize_14084 hfork hne (by omega)) ?_
-  exact revertNone (Nat.le_trans (by decide) hfork) (by evm_code [CODE, CODE_NUMBER, CODE_SIZE])
-    (by evm_code [CODE, CODE_NUMBER, CODE_SIZE])
+  exact (revert_none (Nat.le_trans (by decide) hfork) (by evm_code [CODE, CODE_NUMBER, CODE_SIZE])
+    (by evm_code [CODE, CODE_NUMBER, CODE_SIZE])).consequence (fun _ h => h)
+    fun _ h => answer_none_of_halted h
 
 end LeanXmssEvmVerifierProofs
