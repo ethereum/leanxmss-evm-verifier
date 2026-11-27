@@ -16,3 +16,4 @@ public import LeanXmssEvmVerifierProofs.ChainValues
 public import LeanXmssEvmVerifierProofs.Codeword
 public import LeanXmssEvmVerifierProofs.Harness
 public import LeanXmssEvmVerifierProofs.Main
+public import LeanXmssEvmVerifierProofs.VerifyMain
