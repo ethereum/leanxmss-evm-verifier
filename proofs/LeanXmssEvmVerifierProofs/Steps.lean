@@ -28,11 +28,11 @@ syntax "lx_read" : tactic
 macro_rules
   | `(tactic| lx_read) => `(tactic| ((repeat (rw [readFacts]; simp only [List.find?_cons,
         List.find?_nil, Bool.and_eq_true, Bool.false_and, Bool.true_and, Bool.and_false,
-        Bool.and_true, decide_true, decide_false, Nat.reduceLeDiff, Nat.reduceLTLE,
+        Bool.and_true, decide_true, decide_false, Nat.reduceLeDiff,
         Nat.reduceLT, Nat.reduceAdd, Nat.reduceSub, Nat.reduceMod, Nat.reduceDiv, size_wordBytes,
         ByteArray.size_append, size_bufferRead, Nat.min_def, BitVec.reduceToNat, ↓reduceIte,
         Option.map_some, Option.map_none, Nat.add_zero, Nat.sub_zero, Nat.zero_add,
-        BitVec.toNat_zero, Nat.lt_irrefl, Nat.le_refl, Nat.zero_le])) <;>
+        BitVec.toNat_zero, BitVec.toNat_ofNat, Nat.zero_mod, Nat.lt_irrefl, Nat.le_refl, Nat.zero_le, Nat.reduceEqDiff])) <;>
       try rfl))
 
 /-- KECCAK256 and MLOAD over a frame that knows ranges of memory, read by the tactic above. -/
@@ -56,7 +56,7 @@ whose size a step knows. -/
 syntax "lx_stepC" : tactic
 
 macro_rules
-  | `(tactic| lx_stepC) => `(tactic| ((first | lx_load | evm_stepK [CODE, CODE_NUMBER, CODE_SIZE])
+  | `(tactic| lx_stepC) => `(tactic| ((evm_stepK [CODE, CODE_NUMBER, CODE_SIZE])
       <;> try simp (disch := decide) only [memoryReadBytes_bufferRead, memoryReadBytes_wordBytes,
         Nat.add_zero]))
 

@@ -1,5 +1,14 @@
 module
 
 public import LeanXmssEvmVerifierProofs.Bridge
+public import LeanXmssEvmVerifierProofs.ChainBlocks0
+public import LeanXmssEvmVerifierProofs.ChainBlocks1
+public import LeanXmssEvmVerifierProofs.ChainBlocks2
+public import LeanXmssEvmVerifierProofs.ChainBlocks3
+public import LeanXmssEvmVerifierProofs.ChainBlocks4
+public import LeanXmssEvmVerifierProofs.ChainBlocks5
+public import LeanXmssEvmVerifierProofs.ChainBlocks6
+public import LeanXmssEvmVerifierProofs.ChainBlocks7
+public import LeanXmssEvmVerifierProofs.ChainDigits
 public import LeanXmssEvmVerifierProofs.Harness
 public import LeanXmssEvmVerifierProofs.Main
