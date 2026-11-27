@@ -91,9 +91,10 @@ theorem popAnswer_eq {fork : Fork} {message : Message fork} (hv : message.value 
 
 It holds at every fork from Fusaka, whose execution layer is Osaka, the target of the compiler.
 
-From Glamsterdam, the frame is a one-counter model of the meter of EIP-8037.
+From Glamsterdam, the result is about a one-counter model of the gas, not the meter of EIP-8037.
 
-It holds for every caller, every value, every calldata, and a static call as well.
+It holds for every caller, every value, every calldata shorter than `2 ^ 256` bytes, and a static
+call as well.
 
 It holds whatever code the message names: the frame runs the code it is given. -/
 theorem answers {fork : Fork} (hfork : .fusaka ≤ fork) {message : Message fork} {gas : Nat}

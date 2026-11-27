@@ -56,12 +56,15 @@ theorem harnessVerifierAt : VerifierAt HARNESS_CODE 0x67 96 HARNESS_VERIFY_FN_GA
 
 It holds at every fork from Fusaka, whose execution layer is Osaka, the target of the compiler.
 
-From Glamsterdam, the frame is a one-counter model of the meter of EIP-8037.
+From Glamsterdam, the result is about a one-counter model of the gas, not the meter of EIP-8037.
 
-It holds for every caller, every value, every calldata, and a static call as well. -/
+It holds for every caller, every value, every calldata shorter than `2 ^ 256` bytes, and a static
+call as well. -/
 theorem harnessAnswers {fork : Fork} (hfork : .fusaka ≤ fork) {message : Message fork}
     {gas : Nat} {state : TransactionState} {substate : Substate} {returnData : ByteArray}
     -- CALLDATASIZE pushes the size modulo `2 ^ 256`, so a larger size would read as a smaller one.
+    --
+    -- No chain carries that much calldata: its price in gas exceeds any block.
     (hdata : message.data.size < 2 ^ 256) (hgas : HARNESS_GAS_BOUND ≤ gas) :
     Spec fork (At HARNESS_CODE message 0 [] .empty gas state substate returnData) fun evm =>
       -- The frame stops with the word of the answer, or reverts with no output.

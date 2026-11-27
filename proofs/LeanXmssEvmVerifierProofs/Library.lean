@@ -11,6 +11,8 @@ public import LeanXmssEvmVerifierProofs.VerifyMain
 It answers 1 when leanXMSS accepts the signature, and 0 otherwise.
 
 This holds for every key, message and signature, at every leaf index and for every length.
+
+It holds for callers that have allocated no memory, as the two contracts are.
 -/
 
 @[expose] public section
@@ -39,8 +41,9 @@ def verifyWords (pkWord messageWord : U256) (signature : ByteArray) : Bool :=
 It bounds the longest path, where both digests are codewords, when the caller's memory has 288
 bytes.
 
-Each chain is charged its most expensive digit, so the bound is loose: a valid signature takes
-about 20,900 gas. -/
+Each chain is charged its most expensive digit, so the bound is loose.
+
+A valid signature takes 20,447 gas at leaf 0 and up to 22,865 at other leaves, as measured. -/
 def VERIFY_FN_GAS : Nat :=
   ENTRY_GAS + CODEWORD_GAS + ACCEPT_GAS + LAYER_GAS + TOP_ENTRY_GAS + CODEWORD_GAS + ACCEPT_GAS +
     LAYER_GAS + COMPARE_GAS
@@ -61,7 +64,7 @@ covers `bound`, the verifier's, and `k` more.
 
 The verifier jumps back to `ret` with its answer on the rest of the stack.
 
-Memory then has at least the bytes it had, and holds the free memory pointer again. -/
+Memory then is at least as large, and holds the free memory pointer again. -/
 def VerifierAt (code : ByteArray) (entry size bound : Nat) : Prop :=
   ∀ {fork : Fork} {message : Message fork} {gas : Nat} {state : TransactionState}
     {substate : Substate} {returnData : ByteArray} {length offset messageWord pkWord ret : U256}
