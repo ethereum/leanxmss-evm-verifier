@@ -2,6 +2,7 @@ module
 
 public import LeanXmssEvmVerifierProofs.ChainSteps
 public import LeanXmssEvmVerifierProofs.Bridge
+public import EthLib.Cryptography.Proofs.Xmss.Words
 
 /-!
 # The chains of the code, as leanXMSS computes them
@@ -30,21 +31,6 @@ def HoldsPA (pa : U256) (publicParam : PublicParam) (address : Address) : Prop :
   wordBytes pa = ⟨(lanesBytes #[publicParam.lo, publicParam.hi, address.encode.lo,
     address.encode.hi]).toArray⟩
 
-/-- A read from the start of a list of bytes, inside it, is a prefix of the list. -/
-private theorem bufferRead_mk (l : List UInt8) {n : Nat} (h : n ≤ l.length) :
-    bufferRead ⟨l.toArray⟩ 0 n = l.take n := by
-  rw [bufferRead_eq]
-  apply List.ext_getElem (by simp; omega)
-  intro j h1 h2
-  simp only [List.length_take] at h2
-  simp [EthLib.Base.byteAtOrZero_eq_getD, List.getElem?_eq_getElem (by omega : j < l.length)]
-
-/-- Two byte arrays of lists, joined, are the byte array of the joined lists. -/
-theorem mk_append_mk (a b : List UInt8) :
-    (⟨a.toArray⟩ ++ ⟨b.toArray⟩ : ByteArray) = ⟨(a ++ b).toArray⟩ := by
-  apply ByteArray.ext
-  simp
-
 /-- The first 16 bytes of the hash word of some lanes are the first half of their hash. -/
 theorem first16_keccak_lanes (a : Array UInt64) :
     first16 (keccak ⟨(lanesBytes a).toArray⟩) = digestBytes (halfOf 0 (hash a)) := by
@@ -56,7 +42,9 @@ theorem first16_keccak_lanes (a : Array UInt64) :
         (halfOf 1 (EthLib.Cryptography.Xmss.hash a)).bytes.toList := rfl
   unfold first16 keccak wordBytes digestBytes
   rw [hk, U256.toBeBytes_fromBeBytes]
-  have hb := bufferRead_mk (EthLib.Cryptography.Xmss.hash a).bytes.toList (n := 16) (by simp)
+  have hb : bufferRead ⟨(EthLib.Cryptography.Xmss.hash a).bytes.toList.toArray⟩ 0 16 =
+      (EthLib.Cryptography.Xmss.hash a).bytes.toList.take 16 := by
+    rw [bufferRead_of_le (by simp), List.drop_zero]
   simp only [Vector.toArray_toList] at hb
   rw [hb, hsplit, List.take_left' (by simp)]
   rfl
@@ -79,7 +67,9 @@ private theorem toList_toBeBytes_indexWord {i : Nat} (hi : i < 256) :
 /-- The first 16 bytes of the word of an index below 256 are the bytes of its two lanes. -/
 private theorem first16_indexWord {i : Nat} (hi : i < 256) :
     first16 (indexWord i) = ⟨(lanesBytes #[i.toUInt64, 0]).toArray⟩ := by
-  have hb := bufferRead_mk (U256.toBeBytes (indexWord i)).toList (n := 16) (by simp)
+  have hb : bufferRead ⟨(U256.toBeBytes (indexWord i)).toList.toArray⟩ 0 16 =
+      (U256.toBeBytes (indexWord i)).toList.take 16 := by
+    rw [bufferRead_of_le (by simp), List.drop_zero]
   rw [toList_toBeBytes_indexWord hi] at hb
   have ha : (U256.toBeBytes (indexWord i)).toArray =
       (UInt8.ofNat i :: List.replicate 31 0).toArray := by
@@ -113,7 +103,7 @@ theorem first16_stepWord {pa : U256} {publicParam : PublicParam} {layer : Layer}
     rw [EthLib.Cryptography.Hash.Keccak.lanesBytes_lanes2]
     rfl
   unfold stepWord
-  rw [show wordBytes pa = _ from h, first16_indexWord hi, hv, mk_append_mk, mk_append_mk,
+  rw [show wordBytes pa = _ from h, first16_indexWord hi, hv, EthLib.Base.byteArray_mk_append_mk, List.append_toArray, EthLib.Base.byteArray_mk_append_mk, List.append_toArray,
     ← EthLib.Cryptography.Hash.Keccak.lanesBytes_append,
     ← EthLib.Cryptography.Hash.Keccak.lanesBytes_append, first16_keccak_lanes]
   rfl
@@ -144,26 +134,6 @@ theorem chainEnd_eq {pX pY pZ : U256} {publicParam : PublicParam} {layer : Layer
     rfl
   · rfl
   · omega
-
-/-- The bytes of the lanes that a fold pushes, two per digest, are the bytes of the digests. -/
-private theorem lanesBytes_foldl_push (l : List Digest) (acc : Array UInt64) :
-    lanesBytes (l.foldl (fun acc d => (acc.push d.lo).push d.hi) acc) =
-      lanesBytes acc ++ (l.map fun d => d.bytes.toList).flatten := by
-  induction l generalizing acc with
-  | nil => simp
-  | cons d l ih =>
-    rw [List.foldl_cons, ih, List.map_cons, List.flatten_cons,
-      ← EthLib.Cryptography.Hash.Keccak.lanesBytes_lanes2, Array.push_eq_append,
-      Array.push_eq_append, EthLib.Cryptography.Hash.Keccak.lanesBytes_append,
-      EthLib.Cryptography.Hash.Keccak.lanesBytes_append, List.append_assoc, List.append_assoc]
-    rfl
-
-/-- The bytes of the lanes of some digests are the bytes of the digests, in order. -/
-private theorem lanesBytes_digestLanes {n : Nat} (v : Vector Digest n) :
-    lanesBytes (digestLanes v) = (v.toList.map fun d => d.bytes.toList).flatten := by
-  unfold digestLanes
-  rw [← Array.foldl_toList, lanesBytes_foldl_push]
-  rfl
 
 /-- The ends that the code writes are the lanes of the ends of the chains.
 
@@ -212,12 +182,12 @@ theorem chainEnds_eq {pX pY pZ d : U256} {publicParam : PublicParam} {layer : La
       have hyn := hy ⟨n, hn'⟩
       have hc := chainEnd_eq hX hY hZ ⟨n, hn'⟩ x[(⟨n, hn'⟩ : Fin V)] y[(⟨n, hn'⟩ : Fin V)]
       dsimp only at hdn hyn hc
-      rw [chainEnds, ih (by omega), bufferRead_mk _ (by rw [hlen n (by omega)]),
-        List.take_of_length_le (by rw [hlen n (by omega)]), hdn, hyn, hc, mk_append_mk,
+      rw [chainEnds, ih (by omega), bufferRead_of_le (by rw [Nat.zero_add, hlen n (by omega)]), List.drop_zero,
+        List.take_of_length_le (by rw [hlen n (by omega)]), hdn, hyn, hc, EthLib.Base.byteArray_mk_append_mk, List.append_toArray,
         List.range_succ, List.map_append, List.flatten_append]
       simp [g, hn', digestBytes]
       rfl
-  rw [hends 58 (by omega), bufferRead_mk _ (by rw [hlen 58 (by omega)]),
+  rw [hends 58 (by omega), bufferRead_of_le (by rw [Nat.zero_add, hlen 58 (by omega)]), List.drop_zero,
     List.take_of_length_le (by rw [hlen 58 (by omega)]), lanesBytes_digestLanes]
   -- Both lists hold the 16 bytes of the end of each chain, in order.
   have hl : (List.range 58).map g = (Vector.ofFn fun i : Fin V =>
@@ -235,7 +205,7 @@ theorem first16_leaf {pL : U256} {publicParam : PublicParam} {layer : Layer} {e 
     (hL : HoldsPA pL publicParam (.leaf layer e)) (ends : Vector Digest V) :
     first16 (keccak (wordBytes pL ++ ⟨(lanesBytes (digestLanes ends)).toArray⟩)) =
       digestBytes (otsLeafHash hashId publicParam layer e ends).run := by
-  rw [show wordBytes pL = _ from hL, mk_append_mk,
+  rw [show wordBytes pL = _ from hL, EthLib.Base.byteArray_mk_append_mk, List.append_toArray,
     ← EthLib.Cryptography.Hash.Keccak.lanesBytes_append, first16_keccak_lanes]
   rfl
 

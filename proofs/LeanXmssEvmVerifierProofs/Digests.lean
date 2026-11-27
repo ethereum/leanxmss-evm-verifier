@@ -97,7 +97,7 @@ theorem bottomDigits_eq {pk msg offset : U256} {data : ByteArray} {key : PublicK
   have hpa := holdsPA_of_encode hpk hc
   rw [bottomDigits, hhead, show wordBytes _ = _ from hpa, hadd, ← hrho]
   conv_lhs => rw [wordBytes_eq_lanesBytes msg]
-  rw [mk_append_mk, mk_append_mk, ← EthLib.Cryptography.Hash.Keccak.lanesBytes_append,
+  rw [EthLib.Base.byteArray_mk_append_mk, List.append_toArray, EthLib.Base.byteArray_mk_append_mk, List.append_toArray, ← EthLib.Cryptography.Hash.Keccak.lanesBytes_append,
     ← EthLib.Cryptography.Hash.Keccak.lanesBytes_append, shr_keccak_lanes]
   rfl
 
@@ -159,8 +159,8 @@ theorem topDigits_eq {pk R offset : U256} {data : ByteArray} {key : PublicKey}
       htag]
     omega
   have hpa := holdsPA_of_encode hpk hc
-  rw [topDigits, hhead, show wordBytes _ = _ from hpa, hadd, ← hrho, hr, mk_append_mk,
-    mk_append_mk, ← EthLib.Cryptography.Hash.Keccak.lanesBytes_append,
+  rw [topDigits, hhead, show wordBytes _ = _ from hpa, hadd, ← hrho, hr, EthLib.Base.byteArray_mk_append_mk, List.append_toArray,
+    EthLib.Base.byteArray_mk_append_mk, List.append_toArray, ← EthLib.Cryptography.Hash.Keccak.lanesBytes_append,
     ← EthLib.Cryptography.Hash.Keccak.lanesBytes_append, shr_keccak_lanes]
   rfl
 

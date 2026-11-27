@@ -1,6 +1,7 @@
 module
 
 public import LeanXmssEvmVerifierProofs.ChainValues
+import EthLib.Base.Proofs.Nat
 
 /-!
 # The words `P | A` of the code, and the addresses of leanXMSS
@@ -19,21 +20,6 @@ open EthLib.Base.ByteOrder (ofBE toLE)
 open EthLib.Execution.Evm
 open EthLib.Cryptography.Xmss
 
-/-- The low bytes of a number, little-endian, keep only its residue. -/
-private theorem toLE_mod (n x : Nat) : toLE n (x % 256 ^ n) = toLE n x := by
-  apply Vector.toList_inj.mp
-  rw [← List.reverse_reverse (toLE n _).toList, ← List.reverse_reverse (toLE n x).toList,
-    ← EthLib.Base.ByteOrder.toList_toBE, ← EthLib.Base.ByteOrder.toList_toBE,
-    EthLib.Base.ByteOrder.toBE_mod]
-
-/-- The little-endian bytes of a number on `a + b` bytes: its `a` low bytes, then the rest. -/
-private theorem toList_toLE_add (a b x : Nat) :
-    (toLE (a + b) x).toList = (toLE a x).toList ++ (toLE b (x / 256 ^ a)).toList := by
-  rw [← List.reverse_reverse (toLE (a + b) x).toList, ← EthLib.Base.ByteOrder.toList_toBE,
-    Nat.add_comm, EthLib.Base.ByteOrder.toList_toBE_add, List.reverse_append,
-    EthLib.Base.ByteOrder.toList_toBE, EthLib.Base.ByteOrder.toList_toBE, List.reverse_reverse,
-    List.reverse_reverse]
-
 /-- Sixteen LE bytes of a lane of three fields, read big-endian: each field's bytes in place. -/
 private theorem ofBE_toLE_lane {a b t : Nat} (ha : a < 2 ^ 32) (hb : b < 2 ^ 24) (ht : t < 256) :
     ofBE (toLE 16 (a + b * 2 ^ 32 + t * 2 ^ 56)).toList =
@@ -50,8 +36,8 @@ private theorem ofBE_toLE_lane {a b t : Nat} (ha : a < 2 ^ 32) (hb : b < 2 ^ 24)
     omega
   have h6 : ofBE (toLE 8 0).toList = 0 := by
     decide
-  rw [show 16 = 4 + (3 + (1 + 8)) from rfl, toList_toLE_add, ← toLE_mod, h1, h2,
-    toList_toLE_add, ← toLE_mod 3, h3, h4, toList_toLE_add, h5]
+  rw [show 16 = 4 + (3 + (1 + 8)) from rfl, EthLib.Base.ByteOrder.toList_toLE_add, ← EthLib.Base.ByteOrder.toLE_mod, h1, h2,
+    EthLib.Base.ByteOrder.toList_toLE_add, ← EthLib.Base.ByteOrder.toLE_mod 3, h3, h4, EthLib.Base.ByteOrder.toList_toLE_add, h5]
   have h7 : ofBE (toLE 1 t).toList = t := by
     rw [EthLib.Base.ByteOrder.toList_toLE_succ, EthLib.Base.ByteOrder.ofBE_cons]
     have h0 : ofBE (toLE 0 (t / 256)).toList = 0 := rfl
@@ -112,30 +98,6 @@ def leafWord (data : ByteArray) (offset : Nat) : U256 :=
   bitwiseAnd (bitwiseShr 128#256 (loadWord data offset 32))
     0xffffffff000000000000000000000000#256
 
-/-- A mask of `m` bits above bit `k` keeps the high part of a number split at bit `k`. -/
-private theorem and_mask_mul {x y k m : Nat} (hx : x < 2 ^ m) (hy : y < 2 ^ k) :
-    (2 ^ k * x + y) &&& 2 ^ k * (2 ^ m - 1) = 2 ^ k * x := by
-  apply Nat.eq_of_testBit_eq
-  intro j
-  rw [Nat.testBit_and, Nat.testBit_two_pow_mul_add _ hy, Nat.testBit_two_pow_mul,
-    Nat.testBit_two_pow_mul, Nat.testBit_two_pow_sub_one]
-  by_cases hj : j < k
-  · simp [hj, show ¬k ≤ j by omega]
-  · by_cases hm : j - k < m
-    · simp [hm, show k ≤ j by omega]
-    · have hz : x.testBit (j - k) = false :=
-        Nat.testBit_lt_two_pow (Nat.lt_of_lt_of_le hx (Nat.pow_le_pow_right (by decide) (by omega)))
-      simp [hj, hm, hz]
-
-/-- A read of `a + b` bytes is the read of the first `a`, then the read of the next `b`. -/
-private theorem bufferRead_add (data : ByteArray) (start a b : Nat) :
-    bufferRead data start (a + b) = bufferRead data start a ++ bufferRead data (start + a) b := by
-  simp only [bufferRead_eq, List.range_add, List.map_append, List.map_map]
-  congr 1
-  apply List.map_congr_left
-  intro i _
-  simp only [Function.comp, Nat.add_assoc]
-
 /-- The word of the leaf index holds the leaf index of the signature, little-endian, at byte 16. -/
 theorem leafWord_toNat {data : ByteArray} {offset : Nat} {sig : Signature}
     (hsig : decodeSignature ⟨(bufferRead data offset 2404).toArray⟩ = .ok sig) :
@@ -148,7 +110,7 @@ theorem leafWord_toNat {data : ByteArray} {offset : Nat} {sig : Signature}
     have hall := EthLib.Base.ByteOrder.ofBE_lt (bufferRead data offset 32)
     rw [bufferRead_length] at hall
     rw [loadWord, BitVec.toNat_ofNat, Nat.mod_eq_of_lt (Nat.lt_of_lt_of_le hall (by decide)),
-      show 32 = 4 + 28 from rfl, bufferRead_add, EthLib.Base.ByteOrder.ofBE_append,
+      show 32 = 4 + 28 from rfl, EthLib.Execution.Evm.bufferRead_add, EthLib.Base.ByteOrder.ofBE_append,
       bufferRead_length, show (256 : Nat) ^ 28 = 2 ^ 224 from rfl]
   have hword : (leafWord data offset).toNat = 2 ^ 96 * ofBE (bufferRead data offset 4) := by
     have hmask : (0xffffffff000000000000000000000000#256 : U256).toNat = 2 ^ 96 * (2 ^ 32 - 1) :=
@@ -160,7 +122,7 @@ theorem leafWord_toNat {data : ByteArray} {offset : Nat} {sig : Signature}
       omega
     rw [leafWord, bitwiseAnd, bitwiseShr, ite_eq_left (by decide), BitVec.toNat_and,
       BitVec.toNat_ushiftRight, hmask, show (128#256 : U256).toNat = 128 from rfl, hshr]
-    exact and_mask_mul (by omega) (by omega)
+    exact EthLib.Base.and_mask_mul (by omega) (by omega)
   have hs : (⟨(bufferRead data offset 2404).toArray⟩ : ByteArray).size = Constants.SIG_SIZE := by
     simp [ByteArray.size, bufferRead_length, Constants.SIG_SIZE, Constants.LEAF_INDEX_SIZE,
       Constants.LAYER_SIG_SIZE, Constants.RANDOMIZER_LEN, Constants.V, Constants.DIGEST_LEN,
@@ -171,7 +133,7 @@ theorem leafWord_toNat {data : ByteArray} {offset : Nat} {sig : Signature}
   generalize hv : readBytes _ 0 _ _ = v
   have hle : toLE 4 (EthLib.Base.ByteOrder.ofLE v) = v :=
     EthLib.Base.ByteOrder.toLE_ofLE v
-  rw [show (2 : Nat) ^ 32 = 256 ^ 4 from rfl, toLE_mod, hle, hword]
+  rw [show (2 : Nat) ^ 32 = 256 ^ 4 from rfl, EthLib.Base.ByteOrder.toLE_mod, hle, hword]
   have hlist : v.toList = bufferRead data offset 4 := by
     subst hv
     apply List.ext_getElem (by simp [bufferRead_length, Constants.LEAF_INDEX_SIZE])
@@ -179,19 +141,6 @@ theorem leafWord_toNat {data : ByteArray} {offset : Nat} {sig : Signature}
     simp [readBytes, bufferRead_eq]
   rw [Nat.mul_comm]
   exact congrArg (fun l => ofBE l * 2 ^ 96) hlist.symm
-
-/-- A mask of `m` bits above bit `k` keeps `m` bits of a number shifted up by `k` bits. -/
-private theorem two_pow_mul_and_mask (x k m : Nat) :
-    2 ^ k * x &&& 2 ^ k * (2 ^ m - 1) = 2 ^ k * (x % 2 ^ m) := by
-  apply Nat.eq_of_testBit_eq
-  intro j
-  rw [Nat.testBit_and, Nat.testBit_two_pow_mul, Nat.testBit_two_pow_mul, Nat.testBit_two_pow_mul,
-    Nat.testBit_two_pow_sub_one, Nat.testBit_mod_two_pow]
-  by_cases hj : k ≤ j
-  · by_cases hm : j - k < m
-    · simp [hj, hm]
-    · simp [hj, hm]
-  · simp [hj]
 
 /-- Four LE bytes read big-endian: the low half, shifted up 16 bits, reads the number over 2^16. -/
 private theorem ofBE_toLE_four_div {n : Nat} (hn : n < 2 ^ 32) :
@@ -232,7 +181,7 @@ theorem treeWord_toNat {data : ByteArray} {offset : Nat} {sig : Signature}
     omega
   have hmask : (0xffffffff000000000000000000000000#256 : U256).toNat = 2 ^ 96 * (2 ^ 32 - 1) :=
     rfl
-  rw [bitwiseAnd, BitVec.toNat_and, hmask, hshl, Nat.and_comm, two_pow_mul_and_mask,
+  rw [bitwiseAnd, BitVec.toNat_and, hmask, hshl, Nat.and_comm, EthLib.Base.two_pow_mul_and_mask,
     bottomTree, Constants.LAYER_HEIGHT, ← ofBE_toLE_four_div sig.leafIndex.toNat_lt]
   omega
 
