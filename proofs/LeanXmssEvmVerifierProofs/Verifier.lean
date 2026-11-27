@@ -1,8 +1,7 @@
 module
 
 public import LeanXmssEvmVerifierProofs.Library
-public import LeanXmssEvmVerifierProofs.Digests
-public import LeanXmssEvmVerifierProofs.NodeKeys
+public import LeanXmssEvmVerifierProofs.VerifierSpec
 
 /-!
 # The verifier of `PQProofOfPossession`
@@ -24,6 +23,10 @@ open EthLib.Execution.Evm.Logic
 
 Its caller's memory has 288 bytes. -/
 theorem verifierAt : VerifierAt CODE 0x132 288 VERIFY_FN_GAS := by
-  sorry
+  intro fork message gas state substate returnData length offset messageWord pkWord ret rest facts
+    k hfork hoff hfree hrest hret hgas
+  -- The code answers its word, which is leanXMSS's answer.
+  rw [← codeVerify_eq hoff]
+  exact verifierRun hfork hfree hrest hret hgas
 
 end LeanXmssEvmVerifierProofs

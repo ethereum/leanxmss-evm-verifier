@@ -12,5 +12,8 @@ public import LeanXmssEvmVerifierProofs.Harness
 public import LeanXmssEvmVerifierProofs.Main
 public import LeanXmssEvmVerifierProofs.NodeKeys
 public import LeanXmssEvmVerifierProofs.PathBridge
+public import LeanXmssEvmVerifierProofs.Verifier
+public import LeanXmssEvmVerifierProofs.VerifierRun
+public import LeanXmssEvmVerifierProofs.VerifierSpec
 public import LeanXmssEvmVerifierProofs.Verify
 public import LeanXmssEvmVerifierProofs.VerifyMain
