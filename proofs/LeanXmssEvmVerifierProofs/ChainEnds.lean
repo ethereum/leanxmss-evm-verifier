@@ -9,6 +9,27 @@ public import LeanXmssEvmVerifierProofs.ChainBlocks4
 public import LeanXmssEvmVerifierProofs.ChainBlocks5
 public import LeanXmssEvmVerifierProofs.ChainBlocks6
 public import LeanXmssEvmVerifierProofs.ChainBlocks7
+public import LeanXmssEvmVerifierProofs.ChainBlocks8
+public import LeanXmssEvmVerifierProofs.ChainBlocks9
+public import LeanXmssEvmVerifierProofs.ChainBlocks10
+public import LeanXmssEvmVerifierProofs.ChainBlocks11
+public import LeanXmssEvmVerifierProofs.ChainBlocks12
+public import LeanXmssEvmVerifierProofs.ChainBlocks13
+public import LeanXmssEvmVerifierProofs.ChainBlocks14
+public import LeanXmssEvmVerifierProofs.ChainBlocks15
+public import LeanXmssEvmVerifierProofs.ChainBlocks16
+public import LeanXmssEvmVerifierProofs.ChainBlocks17
+public import LeanXmssEvmVerifierProofs.ChainBlocks18
+public import LeanXmssEvmVerifierProofs.ChainBlocks19
+public import LeanXmssEvmVerifierProofs.ChainBlocks20
+public import LeanXmssEvmVerifierProofs.ChainBlocks21
+public import LeanXmssEvmVerifierProofs.ChainBlocks22
+public import LeanXmssEvmVerifierProofs.ChainBlocks23
+public import LeanXmssEvmVerifierProofs.ChainBlocks24
+public import LeanXmssEvmVerifierProofs.ChainBlocks25
+public import LeanXmssEvmVerifierProofs.ChainBlocks26
+public import LeanXmssEvmVerifierProofs.ChainBlocks27
+public import LeanXmssEvmVerifierProofs.ChainBlocks28
 public import EthLib.Execution.Proofs.Evm.Logic.Template
 public import Mathlib.Tactic.IntervalCases
 

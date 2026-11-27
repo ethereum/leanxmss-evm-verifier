@@ -13,8 +13,9 @@ CHAINS = 58
 VALUES = 0x150
 CHAINS_END = 0x2CE3
 
-# Lemmas per file, so that each file stays a few GB to build.
-PER_FILE = 8
+# Chains per file: the 8 lemmas of 2 chains build in about 1.3 GB, so that CI builds files in
+# parallel with margin.
+PER_FILE = 2
 
 DIGITS = (3, 2, 1, 0)
 
@@ -319,7 +320,16 @@ def main() -> int:
     stale = [int(pc) for pc in listed.split(",")] != pcs
     if stale:
         print("CHAIN_PCS in ChainSteps.lean is not what the bytecode gives", file=sys.stderr)
-    for name, text in render(code).items():
+    files = render(code)
+    # A file of blocks that the code no longer gives is stale too.
+    for path in MODULE.glob("ChainBlocks*.lean"):
+        if path.name not in files:
+            if args.check:
+                print(f"{path} is not what the bytecode gives", file=sys.stderr)
+                stale = True
+            else:
+                path.unlink()
+    for name, text in files.items():
         path = MODULE / name
         if not args.check:
             path.write_text(text)
