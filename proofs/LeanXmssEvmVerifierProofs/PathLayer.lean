@@ -62,7 +62,7 @@ def LAYER_GAS : Nat :=
 
 /-- The words `P | A` of the layer and the call of its chains. -/
 theorem layerStart (hfork : .fusaka ≤ fork) {pa tree index digits ret : U256} {rest : List U256}
-    {s : Nat} (hrest : rest.length ≤ 893) (hgas : 74 ≤ gas) :
+    {s : Nat} (hrest : rest.length ≤ 993) (hgas : 74 ≤ gas) :
     Hoare fork (Known CODE message 0x34ff (pa :: tree :: index :: digits :: ret :: rest) 1536
         [(0x140, ⟨(bufferRead message.data s 1200).toArray⟩)] gas state substate returnData)
       (Known CODE message 0x1ca (digits :: 0x3543 :: tree :: index :: digits :: ret :: rest) 1536
@@ -103,7 +103,7 @@ theorem layerStart (hfork : .fusaka ≤ fork) {pa tree index digits ret : U256} 
 
 /-- At leaf index 0, the layer takes the path at leaf 0 from its leaf, and jumps back. -/
 theorem layerZero (hfork : .fusaka ≤ fork) {tree digits ret leaf : U256} {rest : List U256}
-    {data : ByteArray} {o : Nat} (hrest : rest.length ≤ 893)
+    {data : ByteArray} {o : Nat} (hrest : rest.length ≤ 993)
     (hret : isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)
     (hgas : LAYER_ZERO_GAS ≤ gas) :
     Hoare fork (Known CODE message 0x354c (leaf :: 0 :: tree :: 0 :: digits :: ret :: rest) 1536
@@ -153,7 +153,7 @@ theorem layerZero (hfork : .fusaka ≤ fork) {tree digits ret leaf : U256} {rest
 
 /-- At another leaf index, the layer takes the general path from its leaf, and jumps back. -/
 theorem layerPath (hfork : .fusaka ≤ fork) {tree index digits ret leaf : U256}
-    {rest : List U256} {data : ByteArray} {o : Nat} (hrest : rest.length ≤ 893)
+    {rest : List U256} {data : ByteArray} {o : Nat} (hrest : rest.length ≤ 993)
     (hret : isValidJumpDest (validJumpDestinations CODE) ret.toNat = true) (hi : index ≠ 0)
     (hgas : layerPathGas index ≤ gas) :
     Hoare fork (Known CODE message 0x354c (leaf :: 0 :: tree :: index :: digits :: ret :: rest)
@@ -218,7 +218,7 @@ siblings.
 
 The memory has 1536 bytes, and the frame after knows no fact. -/
 theorem layerRootAt (hfork : .fusaka ≤ fork) {pa tree index digits ret : U256}
-    {rest : List U256} {s k : Nat} (hrest : rest.length ≤ 893)
+    {rest : List U256} {s k : Nat} (hrest : rest.length ≤ 993)
     (hret : isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)
     (hgas : LAYER_GAS + k ≤ gas) :
     Hoare fork (Known CODE message 0x34ff (pa :: tree :: index :: digits :: ret :: rest) 1536

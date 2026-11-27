@@ -54,7 +54,7 @@ The buffers X, Y and Z hold their words `P | A`.
 
 The leaf's input holds its address word, then the ends `E` so far.
 
-The values of the chains from `i` on follow, from byte `o` of `data`. -/
+The values of the chains from `i` on follow from byte `o` of `data`, then the path. -/
 def chainFacts (pX pY pZ pL : U256) (E data : ByteArray) (i o : Nat) :
     List (Nat × ByteArray) :=
   [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),

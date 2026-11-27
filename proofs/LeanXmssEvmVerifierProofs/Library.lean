@@ -1,6 +1,7 @@
 module
 
-public import LeanXmssEvmVerifierProofs.Message
+public import LeanXmssEvmVerifierProofs.PathLayer
+public import LeanXmssEvmVerifierProofs.VerifyMain
 
 /-!
 # The verifier as a function of the code
@@ -33,8 +34,15 @@ def verifyWords (pkWord messageWord : U256) (signature : ByteArray) : Bool :=
   | .ok pk, .ok sig => verify pk (Lanes4.read (wordBytes messageWord) 0) sig
   | _, _ => false
 
-/-- A bound on the gas of the verifier, from its first byte to the jump back. -/
-def VERIFY_FN_GAS : Nat := 27900
+/-- A bound on the gas of the verifier, from its first byte to the jump back: 38,751.
+
+It is the gas of the longest path, where both digests are codewords.
+
+Each chain is charged its most expensive digit, so the bound is loose: a valid signature takes
+about 20,900 gas. -/
+def VERIFY_FN_GAS : Nat :=
+  ENTRY_GAS + CODEWORD_GAS + ACCEPT_GAS + LAYER_GAS + TOP_ENTRY_GAS + CODEWORD_GAS + ACCEPT_GAS +
+    LAYER_GAS + COMPARE_GAS
 
 /-- The verifier starts at `entry` in `code`, and returns 1 exactly when leanXMSS accepts.
 
@@ -52,7 +60,7 @@ covers the verifier and `k` more.
 
 The verifier jumps back to `ret` with its answer on the rest of the stack.
 
-Memory then has grown to 1536 bytes, and holds the free memory pointer again. -/
+Memory then has at least the bytes it had, and holds the free memory pointer again. -/
 def VerifierAt (code : ByteArray) (entry size : Nat) : Prop :=
   ∀ {fork : Fork} {message : Message fork} {gas : Nat} {state : TransactionState}
     {substate : Substate} {returnData : ByteArray} {length offset messageWord pkWord ret : U256}
@@ -62,10 +70,10 @@ def VerifierAt (code : ByteArray) (entry size : Nat) : Prop :=
     VERIFY_FN_GAS + k ≤ gas →
     Hoare fork (Known code message entry (length :: offset :: messageWord :: pkWord :: ret ::
         rest) size facts gas state substate returnData)
-      (fun evm => ∃ facts' g, (64, wordBytes 0x80) ∈ facts' ∧ k ≤ g ∧
+      (fun evm => ∃ size' facts' g, size ≤ size' ∧ (64, wordBytes 0x80) ∈ facts' ∧ k ≤ g ∧
         Known code message ret.toNat ((if verifyWords pkWord messageWord
             ⟨(bufferRead message.data offset.toNat length.toNat).toArray⟩ then 1 else 0) :: rest)
-          (max size 1536) facts' g state substate returnData evm)
+          size' facts' g state substate returnData evm)
 
 /-- The verifier of `PQProofOfPossession` starts at byte 0x132 of its code.
 

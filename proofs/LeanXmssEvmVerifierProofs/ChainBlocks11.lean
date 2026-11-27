@@ -26,7 +26,7 @@ variable {fork : Fork} {message : Message fork} {gas : Nat} {state : Transaction
 
 /-- Chain 22, digit 3. -/
 theorem chain22_3 {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x1000000000000000000000#256 ≠ 0) (hgas : 35 ≤ gas) :
     Hoare fork (Known CODE message 4885 (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
@@ -57,7 +57,7 @@ theorem chain22_3 {t d ret pX pY pZ pL : U256} {rest : List U256}
 
 /-- Chain 22, digit 2. -/
 theorem chain22_2 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x1000000000000000000000#256 = 0) (h1 : bitwiseAnd d
         0x2000000000000000000000#256 ≠ 0) (hgas : 120 ≤ gas) :
     Hoare fork (Known CODE message 4885 (t :: d :: ret :: rest) 1536
@@ -103,7 +103,7 @@ theorem chain22_2 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain 22, digit 1. -/
 theorem chain22_1 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x1000000000000000000000#256 = 0) (h1 : bitwiseAnd d
         0x2000000000000000000000#256 = 0) (h2 : bitwiseAnd d 0x1000000000000000000000#256 ≠ 0)
         (hgas : 206 ≤ gas) :
@@ -164,7 +164,7 @@ theorem chain22_1 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain 22, digit 0. -/
 theorem chain22_0 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x1000000000000000000000#256 = 0) (h1 : bitwiseAnd d
         0x2000000000000000000000#256 = 0) (h2 : bitwiseAnd d 0x1000000000000000000000#256 = 0)
         (hgas : 269 ≤ gas) :
@@ -233,7 +233,7 @@ theorem chain22_0 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain 23, digit 3. -/
 theorem chain23_3 {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x4000000000000000000000#256 ≠ 0) (hgas : 35 ≤ gas) :
     Hoare fork (Known CODE message 5082 (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
@@ -264,7 +264,7 @@ theorem chain23_3 {t d ret pX pY pZ pL : U256} {rest : List U256}
 
 /-- Chain 23, digit 2. -/
 theorem chain23_2 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x4000000000000000000000#256 = 0) (h1 : bitwiseAnd d
         0x8000000000000000000000#256 ≠ 0) (hgas : 120 ≤ gas) :
     Hoare fork (Known CODE message 5082 (t :: d :: ret :: rest) 1536
@@ -310,7 +310,7 @@ theorem chain23_2 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain 23, digit 1. -/
 theorem chain23_1 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x4000000000000000000000#256 = 0) (h1 : bitwiseAnd d
         0x8000000000000000000000#256 = 0) (h2 : bitwiseAnd d 0x4000000000000000000000#256 ≠ 0)
         (hgas : 206 ≤ gas) :
@@ -371,7 +371,7 @@ theorem chain23_1 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain 23, digit 0. -/
 theorem chain23_0 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x4000000000000000000000#256 = 0) (h1 : bitwiseAnd d
         0x8000000000000000000000#256 = 0) (h2 : bitwiseAnd d 0x4000000000000000000000#256 = 0)
         (hgas : 269 ≤ gas) :

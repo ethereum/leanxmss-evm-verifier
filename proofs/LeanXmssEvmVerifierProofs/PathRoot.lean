@@ -26,7 +26,7 @@ variable {fork : Fork} {message : Message fork} {gas : Nat} {state : Transaction
 
 /-- The path, level 1, along the branch of its bit. -/
 theorem pathStart (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 900)
+    ByteArray} (hrest : rest.length ≤ 1000)
     (hgas : pathCost 1 (pathBit index 1) ≤ gas) :
     Hoare fork (Known CODE message 11494 (tree :: index :: node :: ret :: rest) 1536
         [(1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
@@ -45,7 +45,7 @@ theorem pathStart (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest 
 
 /-- The path, level 2, along the branch of its bit. -/
 theorem pathLevel2 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 900) {a : U256} {L R : ByteArray} {l r : Nat}
+    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
     (hgas : pathCost 2 (pathBit index 2) ≤ gas) :
     Hoare fork (Known CODE message 11602 (0 :: tree :: index :: node :: ret :: rest) 1536
         [(0, wordBytes a),
@@ -69,7 +69,7 @@ theorem pathLevel2 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest
 
 /-- The path, level 3, along the branch of its bit. -/
 theorem pathLevel3 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 900) {a : U256} {L R : ByteArray} {l r : Nat}
+    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
     (hgas : pathCost 3 (pathBit index 3) ≤ gas) :
     Hoare fork (Known CODE message 11714 (0 :: tree :: index :: node :: ret :: rest) 1536
         [(128, wordBytes a),
@@ -93,7 +93,7 @@ theorem pathLevel3 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest
 
 /-- The path, level 4, along the branch of its bit. -/
 theorem pathLevel4 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 900) {a : U256} {L R : ByteArray} {l r : Nat}
+    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
     (hgas : pathCost 4 (pathBit index 4) ≤ gas) :
     Hoare fork (Known CODE message 11827 (0 :: tree :: index :: node :: ret :: rest) 1536
         [(0, wordBytes a),
@@ -117,7 +117,7 @@ theorem pathLevel4 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest
 
 /-- The path, level 5, along the branch of its bit. -/
 theorem pathLevel5 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 900) {a : U256} {L R : ByteArray} {l r : Nat}
+    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
     (hgas : pathCost 5 (pathBit index 5) ≤ gas) :
     Hoare fork (Known CODE message 11939 (0 :: tree :: index :: node :: ret :: rest) 1536
         [(128, wordBytes a),
@@ -141,7 +141,7 @@ theorem pathLevel5 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest
 
 /-- The path, level 6, along the branch of its bit. -/
 theorem pathLevel6 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 900) {a : U256} {L R : ByteArray} {l r : Nat}
+    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
     (hgas : pathCost 6 (pathBit index 6) ≤ gas) :
     Hoare fork (Known CODE message 12052 (0 :: tree :: index :: node :: ret :: rest) 1536
         [(0, wordBytes a),
@@ -165,7 +165,7 @@ theorem pathLevel6 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest
 
 /-- The path, level 7, along the branch of its bit. -/
 theorem pathLevel7 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 900) {a : U256} {L R : ByteArray} {l r : Nat}
+    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
     (hgas : pathCost 7 (pathBit index 7) ≤ gas) :
     Hoare fork (Known CODE message 12164 (0 :: tree :: index :: node :: ret :: rest) 1536
         [(128, wordBytes a),
@@ -189,7 +189,7 @@ theorem pathLevel7 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest
 
 /-- The path, level 8, along the branch of its bit. -/
 theorem pathLevel8 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 900) {a : U256} {L R : ByteArray} {l r : Nat}
+    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
     (hgas : pathCost 8 (pathBit index 8) ≤ gas) :
     Hoare fork (Known CODE message 12277 (0 :: tree :: index :: node :: ret :: rest) 1536
         [(0, wordBytes a),
@@ -213,7 +213,7 @@ theorem pathLevel8 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest
 
 /-- The path, level 9, along the branch of its bit. -/
 theorem pathLevel9 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 900) {a : U256} {L R : ByteArray} {l r : Nat}
+    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
     (hgas : pathCost 9 (pathBit index 9) ≤ gas) :
     Hoare fork (Known CODE message 12365 (0 :: tree :: index :: node :: ret :: rest) 1536
         [(128, wordBytes a),
@@ -237,7 +237,7 @@ theorem pathLevel9 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest
 
 /-- The path, level 10, along the branch of its bit. -/
 theorem pathLevel10 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 900) {a : U256} {L R : ByteArray} {l r : Nat}
+    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
     (hgas : pathCost 10 (pathBit index 10) ≤ gas) :
     Hoare fork (Known CODE message 12477 (0 :: tree :: index :: node :: ret :: rest) 1536
         [(0, wordBytes a),
@@ -261,7 +261,7 @@ theorem pathLevel10 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {res
 
 /-- The path, level 11, along the branch of its bit. -/
 theorem pathLevel11 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 900) {a : U256} {L R : ByteArray} {l r : Nat}
+    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
     (hgas : pathCost 11 (pathBit index 11) ≤ gas) :
     Hoare fork (Known CODE message 12588 (0 :: tree :: index :: node :: ret :: rest) 1536
         [(128, wordBytes a),
@@ -285,7 +285,7 @@ theorem pathLevel11 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {res
 
 /-- The path, level 12, along the branch of its bit. -/
 theorem pathLevel12 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 900) {a : U256} {L R : ByteArray} {l r : Nat}
+    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
     (hgas : pathCost 12 (pathBit index 12) ≤ gas) :
     Hoare fork (Known CODE message 12700 (0 :: tree :: index :: node :: ret :: rest) 1536
         [(0, wordBytes a),
@@ -309,7 +309,7 @@ theorem pathLevel12 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {res
 
 /-- The path, level 13, along the branch of its bit. -/
 theorem pathLevel13 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 900) {a : U256} {L R : ByteArray} {l r : Nat}
+    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
     (hgas : pathCost 13 (pathBit index 13) ≤ gas) :
     Hoare fork (Known CODE message 12811 (0 :: tree :: index :: node :: ret :: rest) 1536
         [(128, wordBytes a),
@@ -333,7 +333,7 @@ theorem pathLevel13 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {res
 
 /-- The path, level 14, along the branch of its bit. -/
 theorem pathLevel14 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 900) {a : U256} {L R : ByteArray} {l r : Nat}
+    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
     (hgas : pathCost 14 (pathBit index 14) ≤ gas) :
     Hoare fork (Known CODE message 12923 (0 :: tree :: index :: node :: ret :: rest) 1536
         [(0, wordBytes a),
@@ -357,7 +357,7 @@ theorem pathLevel14 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {res
 
 /-- The path, level 15, along the branch of its bit. -/
 theorem pathLevel15 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 900) {a : U256} {L R : ByteArray} {l r : Nat}
+    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
     (hgas : pathCost 15 (pathBit index 15) ≤ gas) :
     Hoare fork (Known CODE message 13034 (0 :: tree :: index :: node :: ret :: rest) 1536
         [(128, wordBytes a),
@@ -381,7 +381,7 @@ theorem pathLevel15 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {res
 
 /-- The path, level 16, along the branch of its bit. -/
 theorem pathLevel16 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 900) {a : U256} {L R : ByteArray} {l r : Nat}
+    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
     (hret : isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)
     (hgas : pathCost 16 (pathBit index 16) ≤ gas) :
     Hoare fork (Known CODE message 13146 (0 :: tree :: index :: node :: ret :: rest) 1536
@@ -412,7 +412,7 @@ def pathGas (index : U256) : Nat :=
 
 `W` holds the 16 siblings from byte 0, then 16 bytes that the path reads but does not hash. -/
 theorem pathRoot_spec (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256}
-    {W : ByteArray} (hrest : rest.length ≤ 900)
+    {W : ByteArray} (hrest : rest.length ≤ 1000)
     (hret : isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)
     (hgas : pathGas index ≤ gas) :
     Hoare fork (Known CODE message 11494 (tree :: index :: node :: ret :: rest) 1536

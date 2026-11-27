@@ -26,8 +26,9 @@ open EthLib.Execution.Evm.Logic
 open EthLib.Execution.State (TransactionState)
 open EthLib.Execution.Blocks.SystemContract (Answer)
 
-/-- A bound on the gas of every path of the harness. -/
-def HARNESS_GAS_BOUND : Nat := 30000
+/-- A bound on the gas of every path of the harness: the verifier, and 1,000 around it. -/
+def HARNESS_GAS_BOUND : Nat :=
+  VERIFY_FN_GAS + 1000
 
 /-- What a call of the harness returns: the word 1 when leanXMSS accepts, else the word 0.
 

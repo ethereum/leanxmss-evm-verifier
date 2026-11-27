@@ -3,11 +3,9 @@ module
 public import LeanXmssEvmVerifierProofs.Message
 
 /-!
-# The verification, and the answer after it
+# The answer after the verification
 
-The code calls the verifier on the leanXMSS key, `M` and the signature.
-
-The verifier leaves a word that is not zero exactly when leanXMSS accepts the signature of `M`.
+The verifier leaves a word on the stack.
 
 The code then returns the word 1, or reverts with no output.
 -/
@@ -37,33 +35,10 @@ theorem decodeSignature_ok {b : ByteArray} (h : b.size = Constants.SIG_SIZE) :
     ∃ sig, decodeSignature b = .ok sig := by
   simp [decodeSignature, h]
 
-/-- A bound on the gas of the verification, from the call of the verifier to its return. -/
-def VERIFY_GAS : Nat := 28000
-
 /-- The stack after the verifier returns the word `ok`. -/
 def afterVerify (message : Message fork) (ok : U256) : List U256 :=
   [ok, keccak (preimage message), DOMAIN_WORD, loadWord message.data 48 32, 2404#256, 80#256,
     2484#256, 0]
-
-/-- From byte 218, the code calls the verifier, which returns to byte 231.
-
-It returns a word that is not zero exactly when leanXMSS accepts the signature of `M`.
-
-Memory then holds at least the 288 bytes it held, and 40 gas are left. -/
-theorem verifyBody (hfork : .fusaka ≤ fork) (hsize : message.data.size = CALLDATA_LENGTH)
-    {pk : PublicKey} {sig : Signature}
-    (hpk : decodePublicKey (xmssPubkeyOf message.data) = .ok pk)
-    (hsig : decodeSignature (signatureOf message.data) = .ok sig) (hleaf : sig.leafIndex = 0)
-    (hgas : VERIFY_GAS ≤ gas) :
-    Hoare fork (Known CODE message 218 [keccak (preimage message), 0, DOMAIN_WORD,
-        loadWord message.data 48 32, 2404#256, 80#256, 2484#256, 0] 288 [(64, wordBytes 0x80)]
-        gas state substate returnData)
-      (fun evm => ∃ ok size facts g, (ok ≠ 0 ↔ verify pk (Lanes4.read (popMessage
-          message.blockEnv.chainId.toNat (blsPubkeyOf message.data) (xmssPubkeyOf message.data))
-          0) sig = true) ∧ 288 ≤ size ∧ 40 ≤ g ∧
-        Known CODE message 231 (afterVerify message ok) size facts g state substate returnData
-          evm) := by
-  sorry
 
 /-- From byte 231, a word that is not zero returns the word 1, and zero reverts with no output.
 

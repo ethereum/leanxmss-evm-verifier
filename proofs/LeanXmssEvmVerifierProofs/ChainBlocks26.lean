@@ -26,7 +26,7 @@ variable {fork : Fork} {message : Message fork} {gas : Nat} {state : Transaction
 
 /-- Chain 52, digit 3. -/
 theorem chain52_3 {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x010000#256 ≠ 0) (hgas : 35 ≤ gas) :
     Hoare fork (Known CODE message 10459 (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
@@ -57,7 +57,7 @@ theorem chain52_3 {t d ret pX pY pZ pL : U256} {rest : List U256}
 
 /-- Chain 52, digit 2. -/
 theorem chain52_2 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x010000#256 = 0) (h1 : bitwiseAnd d 0x020000#256 ≠ 0) (hgas : 120 ≤ gas) :
     Hoare fork (Known CODE message 10459 (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
@@ -102,7 +102,7 @@ theorem chain52_2 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain 52, digit 1. -/
 theorem chain52_1 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x010000#256 = 0) (h1 : bitwiseAnd d 0x020000#256 = 0) (h2 : bitwiseAnd d
         0x010000#256 ≠ 0) (hgas : 206 ≤ gas) :
     Hoare fork (Known CODE message 10459 (t :: d :: ret :: rest) 1536
@@ -162,7 +162,7 @@ theorem chain52_1 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain 52, digit 0. -/
 theorem chain52_0 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x010000#256 = 0) (h1 : bitwiseAnd d 0x020000#256 = 0) (h2 : bitwiseAnd d
         0x010000#256 = 0) (hgas : 269 ≤ gas) :
     Hoare fork (Known CODE message 10459 (t :: d :: ret :: rest) 1536
@@ -230,7 +230,7 @@ theorem chain52_0 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain 53, digit 3. -/
 theorem chain53_3 {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x040000#256 ≠ 0) (hgas : 35 ≤ gas) :
     Hoare fork (Known CODE message 10632 (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
@@ -261,7 +261,7 @@ theorem chain53_3 {t d ret pX pY pZ pL : U256} {rest : List U256}
 
 /-- Chain 53, digit 2. -/
 theorem chain53_2 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x040000#256 = 0) (h1 : bitwiseAnd d 0x080000#256 ≠ 0) (hgas : 120 ≤ gas) :
     Hoare fork (Known CODE message 10632 (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
@@ -306,7 +306,7 @@ theorem chain53_2 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain 53, digit 1. -/
 theorem chain53_1 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x040000#256 = 0) (h1 : bitwiseAnd d 0x080000#256 = 0) (h2 : bitwiseAnd d
         0x040000#256 ≠ 0) (hgas : 206 ≤ gas) :
     Hoare fork (Known CODE message 10632 (t :: d :: ret :: rest) 1536
@@ -366,7 +366,7 @@ theorem chain53_1 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain 53, digit 0. -/
 theorem chain53_0 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x040000#256 = 0) (h1 : bitwiseAnd d 0x080000#256 = 0) (h2 : bitwiseAnd d
         0x040000#256 = 0) (hgas : 269 ≤ gas) :
     Hoare fork (Known CODE message 10632 (t :: d :: ret :: rest) 1536

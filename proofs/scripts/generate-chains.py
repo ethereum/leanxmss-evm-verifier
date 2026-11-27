@@ -79,7 +79,7 @@ variable {{fork : Fork}} {{message : Message fork}} {{state : TransactionState}}
 
 ENDS_STEP = """/-- Chain block {i}, at every digit. -/
 theorem chainStep{i} (hfork : .fusaka ≤ fork) {{d ret pX pY pZ pL : U256}} {{rest : List U256}}
-    {{o k : Nat}} (hrest : rest.length ≤ 900) :
+    {{o k : Nat}} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k {i})
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k {j}) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain{i}_3 hrest c0 hg)
@@ -91,7 +91,7 @@ theorem chainStep{i} (hfork : .fusaka ≤ fork) {{d ret pX pY pZ pL : U256}} {{r
 
 ENDS_TAIL = """/-- The 58 chain blocks, one after the other. -/
 theorem chainBlocks (hfork : .fusaka ≤ fork) {{d ret pX pY pZ pL : U256}} {{rest : List U256}}
-    {{o k : Nat}} (hrest : rest.length ≤ 900) :
+    {{o k : Nat}} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 0)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 58) := by
   refine Triple.chain fun j hj => ?_
@@ -117,11 +117,11 @@ It takes the word of the digits and the return address on the stack.
 
 The buffers X, Y and Z hold their words `P | A`, and the leaf's input its address word.
 
-The 16-byte values of the 58 chains follow, from byte `o` of the calldata.
+The 16-byte values of the 58 chains follow, from byte `o` of the calldata, then the path.
 
 It writes the end of each chain after the address word of the leaf, and jumps back. -/
 theorem chainEndsAt (hfork : .fusaka ≤ fork) {{d ret pX pY pZ pL : U256}} {{rest : List U256}}
-    {{o k gas : Nat}} (hrest : rest.length ≤ 900)
+    {{o k gas : Nat}} (hrest : rest.length ≤ 1000)
     (hret : isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)
     (hgas : 58 * CHAIN_GAS + 28 + k ≤ gas) :
     Hoare fork (Known CODE message 0x1ca (d :: ret :: rest) 1536
@@ -249,7 +249,7 @@ def lemma(i: int, digit: int, pc: int, nxt: int, steps: int, gas: int, masks: li
     script = "  lx_stepC\n" * steps
     return f"""/-- Chain {i}, digit {digit}. -/
 theorem chain{i}_{digit} {fork_hyp}{{t d ret pX pY pZ pL : U256}} {{rest : List U256}}
-    {{o : Nat}} {{E : ByteArray}} (hrest : rest.length ≤ 900)
+    {{o : Nat}} {{E : ByteArray}} (hrest : rest.length ≤ 1000)
     {' '.join(hyps)} (hgas : {gas} ≤ gas) :
     Hoare fork (Known CODE message {pc} (t :: d :: ret :: rest) 1536
         {facts(i, "E", "o")} gas state substate returnData)

@@ -1,6 +1,6 @@
 module
 
-public import LeanXmssEvmVerifierProofs.Body
+public import LeanXmssEvmVerifierProofs.Verify
 public import EthLib.Execution.Proofs.Blocks.SystemCall.Contract
 
 /-!
@@ -24,10 +24,21 @@ open EthLib.Execution.Evm.Logic
 open EthLib.Execution.State (TransactionState)
 open EthLib.Execution.Blocks.SystemContract (Answer)
 
-/-- A bound on the gas of every path of the code.
+/-- The gas of the dispatcher on a proof of possession, from the first byte to the call site.
 
-It is a margin over the 20,867 gas that the contract is measured to execute in. -/
-def GAS_BOUND : Nat := 30000
+It is the sum of the steps it is proved in: the free memory pointer, the checks of the value and
+the size, the steps to the leaf check, the leaf check, and the hash of `M`. -/
+def DISPATCH_GAS : Nat :=
+  18 + 203 + 167 + 163 + 165 + 154 + 12 + 11 + 15 + 149
+
+/-- A bound on the gas of every path of the code: 39,879.
+
+The path of a proof of possession is the longest.
+
+The bound is loose, since each chain is charged its most expensive digit: the contract is measured
+to execute a valid proof in 20,867 gas. -/
+def GAS_BOUND : Nat :=
+  DISPATCH_GAS + VERIFY_GAS
 
 open Classical in
 /-- What a call returns: the word 1 for a proof of possession that carries no value, else nothing.
@@ -95,7 +106,8 @@ theorem answers {fork : Fork} (hfork : .fusaka ≤ fork) {message : Message fork
       Answer state (popAnswer message) evm ∧
       -- It keeps the substate: no log, no access, no refund.
       evm.substate = substate := by
-  have hg : 30000 ≤ gas := hgas
+  have hg : DISPATCH_GAS + VERIFY_GAS ≤ gas := hgas
+  unfold DISPATCH_GAS at hg
   -- The free memory pointer.
   refine Spec.seq (setFree (by omega)) ?_
   by_cases hv : message.value = 0
@@ -151,7 +163,7 @@ theorem answers {fork : Fork} (hfork : .fusaka ≤ fork) {message : Message fork
   refine Spec.seq (fromLeaf_152 hfork (by omega)) ?_
   refine Spec.seq (Triple.of_imp fun _ h => known_free h) ?_
   refine Spec.seq (hashMessage hfork (by omega)) ?_
-  refine Triple.seq (verifyBody hfork hs hpk hsig h0 (by simp only [VERIFY_GAS]; omega)) ?_
+  refine Triple.seq (verifyBody hfork hs hpk hsig h0 (by omega)) ?_
   rintro evm ⟨ok, size, facts, g, hok, hsz, hgk, hk⟩
   have hans : popAnswer message = if ok ≠ 0 then some 1 else none := by
     rw [popAnswer_eq hv hs hpk hsig]

@@ -26,7 +26,7 @@ variable {fork : Fork} {message : Message fork} {gas : Nat} {state : Transaction
 
 /-- Chain 42, digit 3. -/
 theorem chain42_3 {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x100000000000#256 ≠ 0) (hgas : 35 ≤ gas) :
     Hoare fork (Known CODE message 8675 (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
@@ -57,7 +57,7 @@ theorem chain42_3 {t d ret pX pY pZ pL : U256} {rest : List U256}
 
 /-- Chain 42, digit 2. -/
 theorem chain42_2 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x100000000000#256 = 0) (h1 : bitwiseAnd d 0x200000000000#256 ≠ 0) (hgas :
         120 ≤ gas) :
     Hoare fork (Known CODE message 8675 (t :: d :: ret :: rest) 1536
@@ -103,7 +103,7 @@ theorem chain42_2 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain 42, digit 1. -/
 theorem chain42_1 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x100000000000#256 = 0) (h1 : bitwiseAnd d 0x200000000000#256 = 0) (h2 :
         bitwiseAnd d 0x100000000000#256 ≠ 0) (hgas : 206 ≤ gas) :
     Hoare fork (Known CODE message 8675 (t :: d :: ret :: rest) 1536
@@ -163,7 +163,7 @@ theorem chain42_1 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain 42, digit 0. -/
 theorem chain42_0 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x100000000000#256 = 0) (h1 : bitwiseAnd d 0x200000000000#256 = 0) (h2 :
         bitwiseAnd d 0x100000000000#256 = 0) (hgas : 269 ≤ gas) :
     Hoare fork (Known CODE message 8675 (t :: d :: ret :: rest) 1536
@@ -231,7 +231,7 @@ theorem chain42_0 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain 43, digit 3. -/
 theorem chain43_3 {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x400000000000#256 ≠ 0) (hgas : 35 ≤ gas) :
     Hoare fork (Known CODE message 8857 (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
@@ -262,7 +262,7 @@ theorem chain43_3 {t d ret pX pY pZ pL : U256} {rest : List U256}
 
 /-- Chain 43, digit 2. -/
 theorem chain43_2 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x400000000000#256 = 0) (h1 : bitwiseAnd d 0x800000000000#256 ≠ 0) (hgas :
         120 ≤ gas) :
     Hoare fork (Known CODE message 8857 (t :: d :: ret :: rest) 1536
@@ -308,7 +308,7 @@ theorem chain43_2 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain 43, digit 1. -/
 theorem chain43_1 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x400000000000#256 = 0) (h1 : bitwiseAnd d 0x800000000000#256 = 0) (h2 :
         bitwiseAnd d 0x400000000000#256 ≠ 0) (hgas : 206 ≤ gas) :
     Hoare fork (Known CODE message 8857 (t :: d :: ret :: rest) 1536
@@ -368,7 +368,7 @@ theorem chain43_1 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain 43, digit 0. -/
 theorem chain43_0 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
-    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 900)
+    {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x400000000000#256 = 0) (h1 : bitwiseAnd d 0x800000000000#256 = 0) (h2 :
         bitwiseAnd d 0x400000000000#256 = 0) (hgas : 269 ≤ gas) :
     Hoare fork (Known CODE message 8857 (t :: d :: ret :: rest) 1536

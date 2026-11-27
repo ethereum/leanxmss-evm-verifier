@@ -160,7 +160,9 @@ theorem verifyExit {a₁ a₂ a₃ a₄ a₅ v length offset msg pk ret : U256} 
 
 The free memory pointer is 0x80, so there is nothing to save above it.
 
-The signature past its index is copied to 0x140, and the head of the digest is written at 0. -/
+The bottom layer's 1200 bytes are copied to 0x140.
+
+The head of the digest is written at 0. -/
 theorem verifyEntry (hfork : .fusaka ≤ fork) {offset msg pk ret : U256} {rest : List U256}
     {gas k : Nat} (hrest : rest.length ≤ 900) (hgas : ENTRY_GAS + k ≤ gas) :
     Hoare fork (Known CODE message 0x132 (2404#256 :: offset :: msg :: pk :: ret :: rest) 288
@@ -285,7 +287,9 @@ theorem bottomAccept {c D key index keyLow length offset msg pk ret : U256} {res
   lx_stepC
   exact Triple.of_imp fun _ h => ⟨_, by omega, h⟩
 
-/-- The bottom layer returned its root: the verifier hashes the top digest and calls the test. -/
+/-- The bottom layer returned its root: the verifier hashes the top digest and calls the test.
+
+The 1200 bytes of the top layer, from 1204 bytes into the signature, are copied to 0x140. -/
 theorem topEntry (hfork : .fusaka ≤ fork) {R D key index keyLow length offset msg pk ret : U256}
     {rest : List U256} {gas k : Nat} (hrest : rest.length ≤ 900) (hgas : TOP_ENTRY_GAS + k ≤ gas) :
     Hoare fork (Known CODE message 0x361b (R :: D :: key :: index :: keyLow :: offset :: 128 ::

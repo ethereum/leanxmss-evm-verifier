@@ -55,7 +55,7 @@ variable {fork : Fork} {message : Message fork} {state : TransactionState}
 
 /-- Chain block 0, at every digit. -/
 theorem chainStep0 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 0)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 1) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain0_3 hrest c0 hg)
@@ -65,7 +65,7 @@ theorem chainStep0 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest :
 
 /-- Chain block 1, at every digit. -/
 theorem chainStep1 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 1)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 2) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain1_3 hrest c0 hg)
@@ -75,7 +75,7 @@ theorem chainStep1 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest :
 
 /-- Chain block 2, at every digit. -/
 theorem chainStep2 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 2)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 3) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain2_3 hrest c0 hg)
@@ -85,7 +85,7 @@ theorem chainStep2 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest :
 
 /-- Chain block 3, at every digit. -/
 theorem chainStep3 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 3)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 4) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain3_3 hrest c0 hg)
@@ -95,7 +95,7 @@ theorem chainStep3 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest :
 
 /-- Chain block 4, at every digit. -/
 theorem chainStep4 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 4)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 5) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain4_3 hrest c0 hg)
@@ -105,7 +105,7 @@ theorem chainStep4 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest :
 
 /-- Chain block 5, at every digit. -/
 theorem chainStep5 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 5)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 6) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain5_3 hrest c0 hg)
@@ -115,7 +115,7 @@ theorem chainStep5 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest :
 
 /-- Chain block 6, at every digit. -/
 theorem chainStep6 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 6)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 7) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain6_3 hrest c0 hg)
@@ -125,7 +125,7 @@ theorem chainStep6 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest :
 
 /-- Chain block 7, at every digit. -/
 theorem chainStep7 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 7)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 8) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain7_3 hrest c0 hg)
@@ -135,7 +135,7 @@ theorem chainStep7 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest :
 
 /-- Chain block 8, at every digit. -/
 theorem chainStep8 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 8)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 9) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain8_3 hrest c0 hg)
@@ -145,7 +145,7 @@ theorem chainStep8 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest :
 
 /-- Chain block 9, at every digit. -/
 theorem chainStep9 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 9)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 10) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain9_3 hrest c0 hg)
@@ -155,7 +155,7 @@ theorem chainStep9 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest :
 
 /-- Chain block 10, at every digit. -/
 theorem chainStep10 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 10)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 11) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain10_3 hrest c0 hg)
@@ -165,7 +165,7 @@ theorem chainStep10 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 11, at every digit. -/
 theorem chainStep11 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 11)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 12) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain11_3 hrest c0 hg)
@@ -175,7 +175,7 @@ theorem chainStep11 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 12, at every digit. -/
 theorem chainStep12 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 12)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 13) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain12_3 hrest c0 hg)
@@ -185,7 +185,7 @@ theorem chainStep12 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 13, at every digit. -/
 theorem chainStep13 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 13)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 14) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain13_3 hrest c0 hg)
@@ -195,7 +195,7 @@ theorem chainStep13 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 14, at every digit. -/
 theorem chainStep14 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 14)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 15) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain14_3 hrest c0 hg)
@@ -205,7 +205,7 @@ theorem chainStep14 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 15, at every digit. -/
 theorem chainStep15 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 15)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 16) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain15_3 hrest c0 hg)
@@ -215,7 +215,7 @@ theorem chainStep15 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 16, at every digit. -/
 theorem chainStep16 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 16)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 17) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain16_3 hrest c0 hg)
@@ -225,7 +225,7 @@ theorem chainStep16 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 17, at every digit. -/
 theorem chainStep17 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 17)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 18) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain17_3 hrest c0 hg)
@@ -235,7 +235,7 @@ theorem chainStep17 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 18, at every digit. -/
 theorem chainStep18 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 18)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 19) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain18_3 hrest c0 hg)
@@ -245,7 +245,7 @@ theorem chainStep18 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 19, at every digit. -/
 theorem chainStep19 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 19)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 20) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain19_3 hrest c0 hg)
@@ -255,7 +255,7 @@ theorem chainStep19 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 20, at every digit. -/
 theorem chainStep20 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 20)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 21) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain20_3 hrest c0 hg)
@@ -265,7 +265,7 @@ theorem chainStep20 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 21, at every digit. -/
 theorem chainStep21 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 21)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 22) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain21_3 hrest c0 hg)
@@ -275,7 +275,7 @@ theorem chainStep21 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 22, at every digit. -/
 theorem chainStep22 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 22)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 23) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain22_3 hrest c0 hg)
@@ -285,7 +285,7 @@ theorem chainStep22 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 23, at every digit. -/
 theorem chainStep23 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 23)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 24) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain23_3 hrest c0 hg)
@@ -295,7 +295,7 @@ theorem chainStep23 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 24, at every digit. -/
 theorem chainStep24 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 24)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 25) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain24_3 hrest c0 hg)
@@ -305,7 +305,7 @@ theorem chainStep24 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 25, at every digit. -/
 theorem chainStep25 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 25)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 26) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain25_3 hrest c0 hg)
@@ -315,7 +315,7 @@ theorem chainStep25 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 26, at every digit. -/
 theorem chainStep26 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 26)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 27) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain26_3 hrest c0 hg)
@@ -325,7 +325,7 @@ theorem chainStep26 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 27, at every digit. -/
 theorem chainStep27 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 27)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 28) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain27_3 hrest c0 hg)
@@ -335,7 +335,7 @@ theorem chainStep27 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 28, at every digit. -/
 theorem chainStep28 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 28)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 29) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain28_3 hrest c0 hg)
@@ -345,7 +345,7 @@ theorem chainStep28 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 29, at every digit. -/
 theorem chainStep29 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 29)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 30) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain29_3 hrest c0 hg)
@@ -355,7 +355,7 @@ theorem chainStep29 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 30, at every digit. -/
 theorem chainStep30 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 30)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 31) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain30_3 hrest c0 hg)
@@ -365,7 +365,7 @@ theorem chainStep30 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 31, at every digit. -/
 theorem chainStep31 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 31)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 32) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain31_3 hrest c0 hg)
@@ -375,7 +375,7 @@ theorem chainStep31 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 32, at every digit. -/
 theorem chainStep32 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 32)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 33) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain32_3 hrest c0 hg)
@@ -385,7 +385,7 @@ theorem chainStep32 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 33, at every digit. -/
 theorem chainStep33 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 33)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 34) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain33_3 hrest c0 hg)
@@ -395,7 +395,7 @@ theorem chainStep33 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 34, at every digit. -/
 theorem chainStep34 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 34)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 35) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain34_3 hrest c0 hg)
@@ -405,7 +405,7 @@ theorem chainStep34 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 35, at every digit. -/
 theorem chainStep35 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 35)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 36) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain35_3 hrest c0 hg)
@@ -415,7 +415,7 @@ theorem chainStep35 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 36, at every digit. -/
 theorem chainStep36 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 36)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 37) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain36_3 hrest c0 hg)
@@ -425,7 +425,7 @@ theorem chainStep36 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 37, at every digit. -/
 theorem chainStep37 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 37)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 38) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain37_3 hrest c0 hg)
@@ -435,7 +435,7 @@ theorem chainStep37 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 38, at every digit. -/
 theorem chainStep38 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 38)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 39) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain38_3 hrest c0 hg)
@@ -445,7 +445,7 @@ theorem chainStep38 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 39, at every digit. -/
 theorem chainStep39 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 39)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 40) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain39_3 hrest c0 hg)
@@ -455,7 +455,7 @@ theorem chainStep39 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 40, at every digit. -/
 theorem chainStep40 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 40)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 41) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain40_3 hrest c0 hg)
@@ -465,7 +465,7 @@ theorem chainStep40 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 41, at every digit. -/
 theorem chainStep41 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 41)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 42) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain41_3 hrest c0 hg)
@@ -475,7 +475,7 @@ theorem chainStep41 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 42, at every digit. -/
 theorem chainStep42 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 42)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 43) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain42_3 hrest c0 hg)
@@ -485,7 +485,7 @@ theorem chainStep42 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 43, at every digit. -/
 theorem chainStep43 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 43)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 44) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain43_3 hrest c0 hg)
@@ -495,7 +495,7 @@ theorem chainStep43 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 44, at every digit. -/
 theorem chainStep44 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 44)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 45) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain44_3 hrest c0 hg)
@@ -505,7 +505,7 @@ theorem chainStep44 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 45, at every digit. -/
 theorem chainStep45 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 45)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 46) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain45_3 hrest c0 hg)
@@ -515,7 +515,7 @@ theorem chainStep45 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 46, at every digit. -/
 theorem chainStep46 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 46)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 47) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain46_3 hrest c0 hg)
@@ -525,7 +525,7 @@ theorem chainStep46 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 47, at every digit. -/
 theorem chainStep47 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 47)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 48) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain47_3 hrest c0 hg)
@@ -535,7 +535,7 @@ theorem chainStep47 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 48, at every digit. -/
 theorem chainStep48 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 48)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 49) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain48_3 hrest c0 hg)
@@ -545,7 +545,7 @@ theorem chainStep48 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 49, at every digit. -/
 theorem chainStep49 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 49)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 50) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain49_3 hrest c0 hg)
@@ -555,7 +555,7 @@ theorem chainStep49 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 50, at every digit. -/
 theorem chainStep50 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 50)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 51) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain50_3 hrest c0 hg)
@@ -565,7 +565,7 @@ theorem chainStep50 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 51, at every digit. -/
 theorem chainStep51 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 51)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 52) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain51_3 hrest c0 hg)
@@ -575,7 +575,7 @@ theorem chainStep51 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 52, at every digit. -/
 theorem chainStep52 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 52)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 53) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain52_3 hrest c0 hg)
@@ -585,7 +585,7 @@ theorem chainStep52 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 53, at every digit. -/
 theorem chainStep53 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 53)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 54) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain53_3 hrest c0 hg)
@@ -595,7 +595,7 @@ theorem chainStep53 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 54, at every digit. -/
 theorem chainStep54 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 54)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 55) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain54_3 hrest c0 hg)
@@ -605,7 +605,7 @@ theorem chainStep54 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 55, at every digit. -/
 theorem chainStep55 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 55)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 56) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain55_3 hrest c0 hg)
@@ -615,7 +615,7 @@ theorem chainStep55 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 56, at every digit. -/
 theorem chainStep56 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 56)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 57) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain56_3 hrest c0 hg)
@@ -625,7 +625,7 @@ theorem chainStep56 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- Chain block 57, at every digit. -/
 theorem chainStep57 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 57)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 58) :=
   chain_step (by decide) (by decide) rfl (fun c0 hg => chain57_3 hrest c0 hg)
@@ -635,7 +635,7 @@ theorem chainStep57 (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest 
 
 /-- The 58 chain blocks, one after the other. -/
 theorem chainBlocks (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k : Nat} (hrest : rest.length ≤ 900) :
+    {o k : Nat} (hrest : rest.length ≤ 1000) :
     Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 0)
       (chainFrame message state substate returnData d ret rest pX pY pZ pL o k 58) := by
   refine Triple.chain fun j hj => ?_
@@ -719,11 +719,11 @@ It takes the word of the digits and the return address on the stack.
 
 The buffers X, Y and Z hold their words `P | A`, and the leaf's input its address word.
 
-The 16-byte values of the 58 chains follow, from byte `o` of the calldata.
+The 16-byte values of the 58 chains follow, from byte `o` of the calldata, then the path.
 
 It writes the end of each chain after the address word of the leaf, and jumps back. -/
 theorem chainEndsAt (hfork : .fusaka ≤ fork) {d ret pX pY pZ pL : U256} {rest : List U256}
-    {o k gas : Nat} (hrest : rest.length ≤ 900)
+    {o k gas : Nat} (hrest : rest.length ≤ 1000)
     (hret : isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)
     (hgas : 58 * CHAIN_GAS + 28 + k ≤ gas) :
     Hoare fork (Known CODE message 0x1ca (d :: ret :: rest) 1536
