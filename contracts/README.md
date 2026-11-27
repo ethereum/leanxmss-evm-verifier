@@ -96,8 +96,15 @@ python3 scripts/measure-gas.py   # needs forge and anvil
 The contract executes in 20,867 gas: `M`, the leaf index, the verify and the return. A
 registration pays that inside its STATICCALL, on top of the call itself and of the signature's
 calldata. The 2404 bytes of this proof cost 38,356 gas, at 16 gas per nonzero byte and 4 per zero
-byte, and it has 9 zero bytes. At the calldata floor of 64 gas per byte they cost 153,856.
-These are single measurements, not averages.
+byte, and it has 9 zero bytes. With no zero byte they would cost 38,464. At the calldata floor of
+64 gas per byte they cost 153,856. These are single measurements, not averages.
+
+The execution depends on the digits of the two digests, and on nothing else. The verifier runs the
+same 172 Keccak calls for every proof, but the tests and stores around them depend on the digits. A
+chain at digit 0, 1, 2 or 3 costs 266, 203, 117 or 32 gas, and chain 0 costs 270, 208, 123 or 32.
+The 58 digits of a layer sum to 106, so its chains cost from 7,174 to 7,675 gas, and the rest of the
+execution is 5,925 gas for every proof. The contract therefore executes a proof of possession in
+20,273 to 21,275 gas. The generator's three proofs take 20,806 to 20,867.
 
 ## Using the bytecode
 
