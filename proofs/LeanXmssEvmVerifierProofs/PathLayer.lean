@@ -99,7 +99,7 @@ theorem layerStart (hfork : .fusaka ≤ fork) {pa tree index digits ret : U256} 
   refine Triple.of_imp fun _ h => Known.mono (Known.readAt h (s := 0x140) (t := 0x150)
     (a := 16) (m := 1184) (by evm_fact)) fun f hf => ?_
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hf
-  rcases hf with rfl | rfl | rfl | rfl | rfl <;> lx_fact
+  rcases hf with rfl | rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- At leaf index 0, the layer takes the path at leaf 0 from its leaf, and jumps back. -/
 theorem layerZero (hfork : .fusaka ≤ fork) {tree digits ret leaf : U256} {rest : List U256}
@@ -112,8 +112,6 @@ theorem layerZero (hfork : .fusaka ≤ fork) {tree digits ret leaf : U256} {rest
         (zeroNode tree leaf ⟨(bufferRead data o 256).toArray⟩ 16 :: rest) 1536 []
         (gas - LAYER_ZERO_GAS) state substate returnData) := by
   unfold LAYER_ZERO_GAS ZERO_PATH_GAS at hgas ⊢
-  have hret' := PLift.up hret
-  clear hret
   lx_stepC
   lx_stepC
   lx_stepC
@@ -126,8 +124,23 @@ theorem layerZero (hfork : .fusaka ≤ fork) {tree digits ret leaf : U256} {rest
   lx_stepC
   lx_stepC
   lx_stepC
-  refine Triple.seq (Triple.of_imp fun _ h => Known.tail h (by lx_fact)) ?_
-  refine Triple.exists_pre fun J => ?_
+  -- The path reads the 16 bytes after the siblings with the last one, as some bytes `J`.
+  intro evm h
+  have hm := h.append_memory (s := 0x4f0) (bytes := ⟨(bufferRead data o 256).toArray⟩) (n := 16)
+    (by evm_fact) (by evm_size)
+  have hr := hm.readBytes (s := 0x4f0) (t := 0x4f0) (offset := 0) (length := 272)
+    List.mem_cons_self (hl := by
+      rw [ByteArray.size_append, size_bufferRead, size_memoryReadBytes (by rw [h.2.1])])
+  generalize memoryReadBytes evm.memory (0x4f0 + (⟨(bufferRead data o 256).toArray⟩ :
+    ByteArray).size) 16 = J at hr
+  replace hr := hr.mono (fewer :=
+    [(0x4f0, ⟨(bufferRead (⟨(bufferRead data o 256).toArray⟩ ++ J) 0 272).toArray⟩)])
+    fun f hf => by
+      simp only [List.mem_singleton] at hf
+      subst hf
+      exact List.mem_cons_self
+  clear h hm
+  revert evm
   refine Triple.seq (pathRootAtZero_spec hfork (ret := 0x357c)
     (rest := 0 :: leaf :: 0 :: tree :: 0 :: digits :: ret :: rest) (by simp; omega)
     (by evm_dest [CODE, CODE_NUMBER, CODE_SIZE]) ?hg) ?_
@@ -146,7 +159,7 @@ theorem layerZero (hfork : .fusaka ≤ fork) {tree digits ret leaf : U256} {rest
   lx_stepC
   lx_stepC
   lx_stepC
-  lx_jumpRet hret'.down
+  lx_jumpRet hret
   refine Triple.of_imp fun _ h => ?_
   rw [zeroNode_append _ _ _ (size_bufferRead _ _ _) 16 (by omega)] at h
   exact Known.mono h fun _ hf => by cases hf
@@ -163,8 +176,6 @@ theorem layerPath (hfork : .fusaka ≤ fork) {tree index digits ret leaf : U256}
           ⟨(bufferRead data o 256).toArray⟩ 16 :: rest) 1536 []
         (gas - layerPathGas index) state substate returnData) := by
   unfold layerPathGas at hgas
-  have hret' := PLift.up hret
-  clear hret
   have hp := pathGas_le (bitwiseOr index 0xfffffe0000000000000000#256)
   unfold PATH_GAS_MAX at hp
   -- The test of the leaf index.
@@ -184,8 +195,23 @@ theorem layerPath (hfork : .fusaka ≤ fork) {tree index digits ret leaf : U256}
   lx_stepC
   lx_stepC
   lx_stepC
-  refine Triple.seq (Triple.of_imp fun _ h => Known.tail h (by lx_fact)) ?_
-  refine Triple.exists_pre fun J => ?_
+  -- The path reads the 16 bytes after the siblings with the last one, as some bytes `J`.
+  intro evm h
+  have hm := h.append_memory (s := 0x4f0) (bytes := ⟨(bufferRead data o 256).toArray⟩) (n := 16)
+    (by evm_fact) (by evm_size)
+  have hr := hm.readBytes (s := 0x4f0) (t := 0x4f0) (offset := 0) (length := 272)
+    List.mem_cons_self (hl := by
+      rw [ByteArray.size_append, size_bufferRead, size_memoryReadBytes (by rw [h.2.1])])
+  generalize memoryReadBytes evm.memory (0x4f0 + (⟨(bufferRead data o 256).toArray⟩ :
+    ByteArray).size) 16 = J at hr
+  replace hr := hr.mono (fewer :=
+    [(0x4f0, ⟨(bufferRead (⟨(bufferRead data o 256).toArray⟩ ++ J) 0 272).toArray⟩)])
+    fun f hf => by
+      simp only [List.mem_singleton] at hf
+      subst hf
+      exact List.mem_cons_self
+  clear h hm
+  revert evm
   refine Triple.seq (pathRoot_spec hfork (ret := 0x356b)
     (rest := index :: leaf :: 0 :: tree :: index :: digits :: ret :: rest) (by simp; omega)
     (by evm_dest [CODE, CODE_NUMBER, CODE_SIZE]) ?hg) ?_
@@ -204,7 +230,7 @@ theorem layerPath (hfork : .fusaka ≤ fork) {tree index digits ret leaf : U256}
   lx_stepC
   lx_stepC
   lx_stepC
-  lx_jumpRet hret'.down
+  lx_jumpRet hret
   refine Triple.of_imp fun _ h => ?_
   rw [pathNode_append _ _ _ _ (size_bufferRead _ _ _) 16 (by omega)] at h
   convert Known.mono (fewer := []) h (fun _ hf => by cases hf) using 2
@@ -234,11 +260,9 @@ theorem layerRootAt (hfork : .fusaka ≤ fork) {pa tree index digits ret : U256}
   · omega
   refine Triple.exists_pre fun g => Triple.pure_pre fun hg => ?_
   simp only [chainFacts, Nat.reduceMul, Nat.reduceAdd, Nat.reduceSub, BitVec.reduceToNat]
-  -- The steps see a bound of one atom: linear arithmetic over more can exceed the recursion depth.
+  -- The gas that the steps after the chains need, as one bound.
   unfold PATH_GAS_MAX at hg
   have hg' : 219 ≤ g := by omega
-  have hk := PLift.up hg
-  clear hg hgas
   -- The leaf.
   lx_stepC
   lx_stepC
@@ -251,30 +275,26 @@ theorem layerRootAt (hfork : .fusaka ≤ fork) {pa tree index digits ret : U256}
     [(0x4f0, ⟨(bufferRead message.data (s + 16 + 928) 256).toArray⟩)]) h fun f hf => by
       simp only [List.mem_singleton] at hf
       subst hf
-      lx_fact) ?_
+      evm_fact) ?_
   by_cases hi : index = 0
   · subst hi
     refine Triple.seq (layerZero hfork hrest hret ?hz) (Triple.of_imp fun _ h => ?_)
-    · have := hk.down
-      unfold LAYER_ZERO_GAS ZERO_PATH_GAS
+    · unfold LAYER_ZERO_GAS ZERO_PATH_GAS
       omega
     refine ⟨_, ?_, by
       subst hleaf
       simp only [layerRootWord, ↓reduceIte]
       exact h⟩
-    have := hk.down
     unfold LAYER_ZERO_GAS ZERO_PATH_GAS
     omega
   · have hp := pathGas_le (bitwiseOr index 0xfffffe0000000000000000#256)
     refine Triple.seq (layerPath hfork hrest hret hi ?hp) (Triple.of_imp fun _ h => ?_)
-    · have := hk.down
-      unfold layerPathGas PATH_GAS_MAX at *
+    · unfold layerPathGas PATH_GAS_MAX at *
       omega
     refine ⟨_, ?_, by
       subst hleaf
       simp only [layerRootWord, hi, ↓reduceIte]
       exact h⟩
-    have := hk.down
     unfold layerPathGas PATH_GAS_MAX at *
     omega
 

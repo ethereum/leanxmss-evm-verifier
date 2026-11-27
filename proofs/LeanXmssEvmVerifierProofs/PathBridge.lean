@@ -15,28 +15,17 @@ So the root that a layer of the code reaches is the root that `fold` reaches fro
 
 namespace LeanXmssEvmVerifierProofs
 
-open EthLib.Base (U256)
+open EthLib.Base (U256 packBytes)
 open EthLib.Execution.Evm
-open EthLib.Execution.Evm.Logic (size_bufferRead)
+open EthLib.Execution.Evm.Logic (memoryReadBytes_eq_bufferRead size_bufferRead)
 open EthLib.Cryptography
 open EthLib.Cryptography.Xmss
 open EthLib.Cryptography.Xmss.Constants
 open EthLib.Cryptography.Hash.Keccak (Lanes2 Lanes4 lanesBytes)
 
-/-- The 32 bytes of a key hold the lanes of a public parameter, then those of an address. -/
-def KeyHolds (key : ByteArray) (publicParam : PublicParam) (address : Address) : Prop :=
-  key = ⟨(lanesBytes #[publicParam.lo, publicParam.hi, address.encode.lo,
-    address.encode.hi]).toArray⟩
-
-/-- Two byte arrays of lists, joined, are the byte array of the joined lists. -/
-private theorem mk_append_mk' (a b : List UInt8) :
-    (⟨a.toArray⟩ ++ ⟨b.toArray⟩ : ByteArray) = ⟨(a ++ b).toArray⟩ := by
-  apply ByteArray.ext
-  simp
-
 /-- The bytes of a digest are the bytes of its two lanes. -/
-private theorem digestBytes_lanes (v : Digest) :
-    digestBytes v = ⟨(lanesBytes v.toArray).toArray⟩ := by
+private theorem packBytes_lanes (v : Digest) :
+    packBytes v.bytes = ⟨(lanesBytes v.toArray).toArray⟩ := by
   rw [EthLib.Cryptography.Hash.Keccak.lanesBytes_lanes2]
   rfl
 
@@ -45,9 +34,10 @@ theorem first16_node {key : ByteArray} {publicParam : PublicParam} {layer : Laye
     {p : Merkle.Position}
     (h : KeyHolds key publicParam (.node layer (Fin.ofNat _ p.level) (UInt32.ofNat p.index)))
     (left right : Digest) :
-    first16 (keccak (key ++ (digestBytes left ++ digestBytes right))) =
-      digestBytes (nodeHash hashId publicParam layer p left right).run := by
-  rw [h, digestBytes_lanes, digestBytes_lanes, mk_append_mk', mk_append_mk',
+    first16 (keccak (key ++ (packBytes left.bytes ++ packBytes right.bytes))) =
+      packBytes (nodeHash hashId publicParam layer p left right).run.bytes := by
+  rw [h, packBytes_lanes, packBytes_lanes, EthLib.Base.byteArray_mk_append_mk, List.append_toArray,
+    EthLib.Base.byteArray_mk_append_mk, List.append_toArray,
     ← EthLib.Cryptography.Hash.Keccak.lanesBytes_append,
     ← EthLib.Cryptography.Hash.Keccak.lanesBytes_append, first16_keccak_lanes]
   rfl
@@ -67,7 +57,7 @@ theorem climb_cons (publicParam : PublicParam) (layer : Layer) (p : Merkle.Posit
 /-- The key of level `k` at leaf 0: the word `tree` with the level in its byte 20. -/
 def zeroKey (tree : U256) (k : Nat) : ByteArray :=
   ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩ ++
-    (⟨(bufferRead (byteBytes k) 0 1).toArray⟩ ++ ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩)
+    (byteBytes k ++ ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩)
 
 /-- The input of a node at leaf 0 is its key, then its two children. -/
 theorem zeroInput_eq (tree w : U256) (k : Nat) (W : ByteArray) :
@@ -87,11 +77,13 @@ theorem first16_zeroNode {tree leafWord : U256} {W : ByteArray} {publicParam : P
     {layer : Layer} {leaf : Digest} {pi : Vector Digest LAYER_HEIGHT}
     (hkey : ∀ k, 1 ≤ k → k ≤ LAYER_HEIGHT →
       KeyHolds (zeroKey tree k) publicParam (.node layer (Fin.ofNat _ k) (UInt32.ofNat 0)))
-    (hleaf : first16 leafWord = digestBytes leaf)
+    (hleaf : first16 leafWord = packBytes leaf.bytes)
     (hsib : ∀ k, k < LAYER_HEIGHT →
-      (⟨(bufferRead W (16 * k) 16).toArray⟩ : ByteArray) = digestBytes (pi.toList.getD k leaf)) :
+      (⟨(bufferRead W (16 * k) 16).toArray⟩ : ByteArray) =
+        packBytes (pi.toList.getD k leaf).bytes) :
     ∀ n, n ≤ LAYER_HEIGHT →
-      first16 (zeroNode tree leafWord W n) = digestBytes (zeroDigest publicParam layer leaf pi n)
+      first16 (zeroNode tree leafWord W n) =
+        packBytes (zeroDigest publicParam layer leaf pi n).bytes
   | 0, _ => hleaf
   | n + 1, hn => by
     rw [zeroNode, zeroInput_eq, Nat.add_sub_cancel, first16_zeroNode hkey hleaf hsib n (by omega),
@@ -127,11 +119,12 @@ theorem first16_zeroRoot {tree leafWord : U256} {W : ByteArray} {publicParam : P
     {layer : Layer} {leaf : Digest} {pi : Vector Digest LAYER_HEIGHT}
     (hkey : ∀ k, 1 ≤ k → k ≤ LAYER_HEIGHT →
       KeyHolds (zeroKey tree k) publicParam (.node layer (Fin.ofNat _ k) (UInt32.ofNat 0)))
-    (hleaf : first16 leafWord = digestBytes leaf)
+    (hleaf : first16 leafWord = packBytes leaf.bytes)
     (hsib : ∀ k, k < LAYER_HEIGHT →
-      (⟨(bufferRead W (16 * k) 16).toArray⟩ : ByteArray) = digestBytes (pi.toList.getD k leaf)) :
+      (⟨(bufferRead W (16 * k) 16).toArray⟩ : ByteArray) =
+        packBytes (pi.toList.getD k leaf).bytes) :
     first16 (zeroNode tree leafWord W 16) =
-      digestBytes (fold hashId publicParam layer 0 leaf pi).run := by
+      packBytes (fold hashId publicParam layer 0 leaf pi).run.bytes := by
   rw [fold_zero, first16_zeroNode hkey hleaf hsib 16 (by decide)]
 
 /-! ## The general path -/
@@ -156,12 +149,13 @@ theorem first16_pathNode {tree index node : U256} {W : ByteArray} {publicParam :
     (hkey : ∀ n, n < LAYER_HEIGHT →
       KeyHolds (wordBytes (pathAddr tree index (n + 1))) publicParam
         (.node layer (Fin.ofNat _ (n + 1)) (UInt32.ofNat (e / 2 ^ (n + 1)))))
-    (hleaf : first16 node = digestBytes leaf)
+    (hleaf : first16 node = packBytes leaf.bytes)
     (hsib : ∀ k, k < LAYER_HEIGHT →
-      (⟨(bufferRead W (16 * k) 16).toArray⟩ : ByteArray) = digestBytes (pi.toList.getD k leaf)) :
+      (⟨(bufferRead W (16 * k) 16).toArray⟩ : ByteArray) =
+        packBytes (pi.toList.getD k leaf).bytes) :
     ∀ n, n ≤ LAYER_HEIGHT →
       first16 (pathNode tree index node W n) =
-        digestBytes (pathDigest publicParam layer e leaf pi n)
+        packBytes (pathDigest publicParam layer e leaf pi n).bytes
   | 0, _ => hleaf
   | n + 1, hn => by
     have ih := first16_pathNode hbit hkey hleaf hsib n (by omega)
@@ -213,11 +207,12 @@ theorem first16_pathRoot {tree index node : U256} {W : ByteArray} {publicParam :
     (hkey : ∀ n, n < LAYER_HEIGHT →
       KeyHolds (wordBytes (pathAddr tree index (n + 1))) publicParam
         (.node layer (Fin.ofNat _ (n + 1)) (UInt32.ofNat (e / 2 ^ (n + 1)))))
-    (hleaf : first16 node = digestBytes leaf)
+    (hleaf : first16 node = packBytes leaf.bytes)
     (hsib : ∀ k, k < LAYER_HEIGHT →
-      (⟨(bufferRead W (16 * k) 16).toArray⟩ : ByteArray) = digestBytes (pi.toList.getD k leaf)) :
+      (⟨(bufferRead W (16 * k) 16).toArray⟩ : ByteArray) =
+        packBytes (pi.toList.getD k leaf).bytes) :
     first16 (pathNode tree index node W 16) =
-      digestBytes (fold hashId publicParam layer e leaf pi).run := by
+      packBytes (fold hashId publicParam layer e leaf pi).run.bytes := by
   rw [fold_path, first16_pathNode hbit hkey hleaf hsib 16 (by decide)]
 
 /-! ## The root of a layer -/
@@ -227,22 +222,22 @@ theorem first16_pathRoot {tree index node : U256} {W : ByteArray} {publicParam :
 Each chain starts at its digit of the codeword `x`, from its value in the signature `y`. -/
 theorem first16_layerLeaf {pa digits : U256} {publicParam : PublicParam} {layer : Layer}
     {e : UInt32}
-    (hX : HoldsPA (bitwiseOr pa 0x410000000000000000#256) publicParam
+    (hX : KeyHolds (wordBytes (bitwiseOr pa 0x410000000000000000#256)) publicParam
       (.chain layer e ⟨2, by decide⟩))
-    (hY : HoldsPA (bitwiseOr pa 0x210000000000000000#256) publicParam
+    (hY : KeyHolds (wordBytes (bitwiseOr pa 0x210000000000000000#256)) publicParam
       (.chain layer e ⟨1, by decide⟩))
-    (hZ : HoldsPA (bitwiseOr pa 0x10000000000000000#256) publicParam
+    (hZ : KeyHolds (wordBytes (bitwiseOr pa 0x10000000000000000#256)) publicParam
       (.chain layer e ⟨0, by decide⟩))
-    (hL : HoldsPA (bitwiseOr 0x20000000000000000#256 pa) publicParam (.leaf layer e))
+    (hL : KeyHolds (wordBytes (bitwiseOr 0x20000000000000000#256 pa)) publicParam (.leaf layer e))
     {x : Vector (Fin CHAIN_LENGTH) V}
     (hd : ∀ i : Fin V, digitAt digits (digitPos i.val) = (x[i]).val) {data : ByteArray} {o : Nat}
     {y : Vector Digest V}
     (hy : ∀ i : Fin V,
-      (⟨(bufferRead data (o + 16 * i.val) 16).toArray⟩ : ByteArray) = digestBytes y[i]) :
+      (⟨(bufferRead data (o + 16 * i.val) 16).toArray⟩ : ByteArray) = packBytes y[i].bytes) :
     first16 (layerLeaf pa digits data o) =
-      digestBytes (otsLeafHash hashId publicParam layer e (Vector.ofFn fun i : Fin V =>
+      packBytes (otsLeafHash hashId publicParam layer e (Vector.ofFn fun i : Fin V =>
         (chain hashId publicParam layer e i x[i] (CHAIN_LENGTH - 1 - x[i])
-          (by have := x[i].isLt; omega) y[i]).run)).run := by
+          (by have := x[i].isLt; omega) y[i]).run)).run.bytes := by
   unfold layerLeaf
   rw [show (928 : Nat) = 16 * 58 from rfl, chainEnds_eq hX hY hZ hd hy, first16_leaf hL]
 
@@ -257,10 +252,10 @@ private theorem bufferRead_bufferRead (data : ByteArray) {a b k n : Nat} (h : b 
 private theorem siblings_read {data : ByteArray} {o : Nat} {leaf : Digest}
     {pi : Vector Digest LAYER_HEIGHT}
     (hsib : ∀ k, k < LAYER_HEIGHT → (⟨(bufferRead data (o + 928 + 16 * k) 16).toArray⟩ :
-      ByteArray) = digestBytes (pi.toList.getD k leaf)) :
+      ByteArray) = packBytes (pi.toList.getD k leaf).bytes) :
     ∀ k, k < LAYER_HEIGHT →
       (⟨(bufferRead ⟨(bufferRead data (o + 928) 256).toArray⟩ (16 * k) 16).toArray⟩ :
-        ByteArray) = digestBytes (pi.toList.getD k leaf) := by
+        ByteArray) = packBytes (pi.toList.getD k leaf).bytes := by
   intro k hk
   rw [bufferRead_bufferRead _ (by unfold LAYER_HEIGHT at hk; omega)]
   exact hsib k hk
@@ -270,11 +265,11 @@ theorem first16_layerRootWord_zero {pa tree digits : U256} {data : ByteArray} {o
     {publicParam : PublicParam} {layer : Layer} {leaf : Digest} {pi : Vector Digest LAYER_HEIGHT}
     (hkey : ∀ k, 1 ≤ k → k ≤ LAYER_HEIGHT →
       KeyHolds (zeroKey tree k) publicParam (.node layer (Fin.ofNat _ k) (UInt32.ofNat 0)))
-    (hleaf : first16 (layerLeaf pa digits data o) = digestBytes leaf)
+    (hleaf : first16 (layerLeaf pa digits data o) = packBytes leaf.bytes)
     (hsib : ∀ k, k < LAYER_HEIGHT → (⟨(bufferRead data (o + 928 + 16 * k) 16).toArray⟩ :
-      ByteArray) = digestBytes (pi.toList.getD k leaf)) :
+      ByteArray) = packBytes (pi.toList.getD k leaf).bytes) :
     first16 (layerRootWord pa tree 0 digits data o) =
-      digestBytes (fold hashId publicParam layer 0 leaf pi).run := by
+      packBytes (fold hashId publicParam layer 0 leaf pi).run.bytes := by
   simp only [layerRootWord, ↓reduceIte]
   exact first16_zeroRoot hkey hleaf (siblings_read hsib)
 
@@ -288,11 +283,11 @@ theorem first16_layerRootWord {pa tree index digits : U256} {data : ByteArray} {
     (hkey : ∀ n, n < LAYER_HEIGHT →
       KeyHolds (wordBytes (pathAddr tree (bitwiseOr index 0xfffffe0000000000000000#256) (n + 1)))
         publicParam (.node layer (Fin.ofNat _ (n + 1)) (UInt32.ofNat (e / 2 ^ (n + 1)))))
-    (hleaf : first16 (layerLeaf pa digits data o) = digestBytes leaf)
+    (hleaf : first16 (layerLeaf pa digits data o) = packBytes leaf.bytes)
     (hsib : ∀ k, k < LAYER_HEIGHT → (⟨(bufferRead data (o + 928 + 16 * k) 16).toArray⟩ :
-      ByteArray) = digestBytes (pi.toList.getD k leaf)) :
+      ByteArray) = packBytes (pi.toList.getD k leaf).bytes) :
     first16 (layerRootWord pa tree index digits data o) =
-      digestBytes (fold hashId publicParam layer e leaf pi).run := by
+      packBytes (fold hashId publicParam layer e leaf pi).run.bytes := by
   simp only [layerRootWord, hi, ↓reduceIte]
   exact first16_pathRoot hbit hkey hleaf (siblings_read hsib)
 

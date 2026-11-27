@@ -3,7 +3,9 @@ module
 public import LeanXmssEvmVerifierProofs.Addresses
 public import LeanXmssEvmVerifierProofs.PathBridge
 import EthLib.Base.Proofs.ByteOrder
+import EthLib.Base.Proofs.ByteOrder.Bits
 import EthLib.Base.Proofs.U256
+import EthLib.Execution.Proofs.Evm.Instructions.Bitwise
 import EthLib.Execution.Proofs.Evm.Machine.Memory
 import Mathlib.Tactic.IntervalCases
 
@@ -20,47 +22,12 @@ Each level of the path sets its level and its node index in that word.
 namespace LeanXmssEvmVerifierProofs
 
 open EthLib.Base (U256)
-open EthLib.Base.ByteOrder (ofBE toLE)
+open EthLib.Base.ByteOrder (ofBE toLE testBit_ofBE_toLE)
 open EthLib.Execution.Evm
 open EthLib.Cryptography.Xmss
 open EthLib.Cryptography.Xmss.Constants
 
 /-! ## Bits and bytes of the words -/
-
-/-- Four LE bytes read big-endian: the bytes of `e` in reverse order. -/
-private theorem swap_eq (e : Nat) :
-    ofBE (toLE 4 e).toList = 2 ^ 24 * (e % 2 ^ 8) + (2 ^ 16 * (e / 2 ^ 8 % 2 ^ 8) +
-      (2 ^ 8 * (e / 2 ^ 16 % 2 ^ 8) + e / 2 ^ 24 % 2 ^ 8)) := by
-  simp only [EthLib.Base.ByteOrder.toList_toLE_succ, EthLib.Base.ByteOrder.ofBE_cons,
-    UInt8.toNat_ofNat', List.length_cons, Vector.length_toList, Nat.reduceAdd, Nat.reducePow,
-    Nat.div_div_eq_div_mul, Nat.reduceMul]
-  have h0 : ∀ y, ofBE (toLE 0 y).toList = 0 := fun _ => rfl
-  simp only [h0]
-  omega
-
-/-- Bit `k` of four LE bytes read big-endian: the same bit of `e`, in the reversed byte. -/
-private theorem testBit_swap (e k : Nat) :
-    (ofBE (toLE 4 e).toList).testBit k =
-      (decide (k < 32) && e.testBit ((3 - k / 8) * 8 + k % 8)) := by
-  have h8 : ∀ x, x % 2 ^ 8 < 2 ^ 8 := fun x => Nat.mod_lt _ (by decide)
-  have h16 : ∀ x y, 2 ^ 8 * (x % 2 ^ 8) + y % 2 ^ 8 < 2 ^ 16 := by
-    intro x y
-    have := h8 x
-    have := h8 y
-    omega
-  have h24 : ∀ x y z, 2 ^ 16 * (x % 2 ^ 8) + (2 ^ 8 * (y % 2 ^ 8) + z % 2 ^ 8) < 2 ^ 24 := by
-    intro x y z
-    have := h8 x
-    have := h16 y z
-    omega
-  rw [swap_eq, Nat.testBit_two_pow_mul_add _ (h24 _ _ _),
-    Nat.testBit_two_pow_mul_add _ (h16 _ _), Nat.testBit_two_pow_mul_add _ (h8 _)]
-  simp only [Nat.testBit_mod_two_pow, Nat.testBit_div_two_pow]
-  by_cases hk : k < 32
-  · interval_cases k <;> simp
-  · have h1 : ¬ k < 24 := by omega
-    have h2 : ¬ k - 24 < 8 := by omega
-    simp [h1, h2, hk]
 
 /-- Three LE bytes read big-endian: the bytes of `h` in reverse order. -/
 private theorem ofBE_toLE_three (h : Nat) :
@@ -71,24 +38,6 @@ private theorem ofBE_toLE_three (h : Nat) :
   have h0 : ∀ y, ofBE (toLE 0 y).toList = 0 := fun _ => rfl
   simp only [h0]
   omega
-
-/-- A right shift by a literal below 256 is the shift of the number. -/
-private theorem toNat_bitwiseShr {s : Nat} (x : U256) (hs : s < 256) :
-    (bitwiseShr (BitVec.ofNat 256 s) x).toNat = x.toNat >>> s := by
-  have hs' : (BitVec.ofNat 256 s).toNat = s := by
-    rw [BitVec.toNat_ofNat]
-    omega
-  rw [bitwiseShr, hs']
-  simp only [hs, ↓reduceIte, BitVec.toNat_ushiftRight]
-
-/-- A left shift by a literal below 256 is the shift of the number, modulo `2^256`. -/
-private theorem toNat_bitwiseShl {s : Nat} (x : U256) (hs : s < 256) :
-    (bitwiseShl (BitVec.ofNat 256 s) x).toNat = x.toNat <<< s % 2 ^ 256 := by
-  have hs' : (BitVec.ofNat 256 s).toNat = s := by
-    rw [BitVec.toNat_ofNat]
-    omega
-  rw [bitwiseShl, hs']
-  simp only [hs, ↓reduceIte, BitVec.toNat_shiftLeft]
 
 /-- A number that is a multiple of `2^88` has no bit below 88. -/
 private theorem testBit_low {x j : Nat} (hx : x % 2 ^ 88 = 0) (hj : j < 88) :
@@ -127,7 +76,7 @@ local macro "path_level" : tactic => `(tactic| (
   apply Nat.eq_of_testBit_eq
   intro j
   simp only [Nat.testBit_or, Nat.testBit_and, Nat.testBit_shiftRight, Nat.testBit_shiftLeft,
-    Nat.testBit_mod_two_pow, Nat.testBit_mul_two_pow, testBit_swap, Nat.testBit_div_two_pow]
+    Nat.testBit_mod_two_pow, Nat.testBit_mul_two_pow, testBit_ofBE_toLE, Nat.testBit_div_two_pow]
   rcases Nat.lt_or_ge j 88 with hj | hj
   · simp [hj, testBit_low]
   rcases Nat.lt_or_ge j 128 with hj' | hj'
@@ -181,33 +130,6 @@ def treeTag : Layer → U256
 
 /-! ## The words `P | A` of the nodes -/
 
-/-- A word ANDed with a single bit is nonzero exactly when that bit is set. -/
-private theorem decide_and_ne_zero {x m : U256} {p : Nat} (hm : m.toNat = 2 ^ p) :
-    decide (bitwiseAnd x m ≠ 0) = x.toNat.testBit p := by
-  have h : (bitwiseAnd x m).toNat = x.toNat &&& 2 ^ p := by
-    rw [bitwiseAnd, BitVec.toNat_and, hm]
-  have hiff : bitwiseAnd x m = 0 ↔ x.toNat.testBit p = false := by
-    constructor
-    · intro h0
-      have ht := congrArg (fun v : U256 => v.toNat.testBit p) h0
-      simpa [h, Nat.testBit_and, Nat.testBit_two_pow] using ht
-    · intro hb
-      apply BitVec.eq_of_toNat_eq
-      rw [h]
-      show _ = 0
-      apply Nat.eq_of_testBit_eq
-      intro i
-      by_cases hi : p = i
-      · subst hi
-        simp [Nat.testBit_and, hb]
-      · simp [Nat.testBit_and, hi]
-  by_cases hb : x.toNat.testBit p
-  · rw [hb]
-    exact decide_eq_true fun h0 => by simp [hiff.mp h0] at hb
-  · rw [Bool.not_eq_true] at hb
-    rw [hb]
-    exact decide_eq_false fun h0 => h0 (hiff.mpr hb)
-
 /-- The number of a tag: the top layer's bit 79 and the node type 3 at bit 64. -/
 private theorem treeTag_toNat (layer : Layer) :
     (treeTag layer).toNat = layer.toNat * 2 ^ 79 + 3 * 2 ^ 64 := by
@@ -220,7 +142,8 @@ private theorem layer_toNat_le (layer : Layer) : layer.toNat ≤ 1 := by
 /-- The key word shifted up 128 bits, with a word below `2^128` in its low half. -/
 private theorem toNat_keyWord (pk c : U256) (hc : c.toNat < 2 ^ 128) :
     (bitwiseOr (bitwiseShl 128#256 pk) c).toNat = 2 ^ 128 * (pk.toNat % 2 ^ 128) + c.toNat := by
-  rw [bitwiseOr, BitVec.toNat_or, toNat_bitwiseShl _ (by decide), Nat.shiftLeft_eq,
+  rw [bitwiseOr, BitVec.toNat_or, toNat_bitwiseShl, BitVec.toNat_ofNat,
+    show 128 % 2 ^ 256 = 128 from rfl,
     show (2 : Nat) ^ 256 = 2 ^ 128 * 2 ^ 128 from rfl, Nat.mul_comm, Nat.mul_mod_mul_left,
     Nat.two_pow_add_eq_or_of_lt hc]
 
@@ -249,7 +172,7 @@ private theorem keyHolds_of_toNat {pk c : U256} {key : PublicKey}
     (hc : c.toNat = (treeTag layer).toNat + ofBE (toLE 4 j).toList * 2 ^ 96 + k * 2 ^ 88) :
     KeyHolds (wordBytes (bitwiseOr (bitwiseShl 128#256 pk) c)) key.publicParam
       (.node layer (Fin.ofNat _ k) (UInt32.ofNat j)) := by
-  apply holdsPA_of_encode hpk
+  apply keyHolds_of_encode hpk
   rw [hc, ofBE_encode_node layer hk hj, treeTag_toNat]
   omega
 
@@ -275,7 +198,6 @@ private theorem zeroKey_eq {w w' : U256} {k : Nat}
   have hw : ∀ v : U256, wordBytes v = ⟨(U256.toBeBytes v).toList.toArray⟩ := fun _ => rfl
   have hb : byteBytes k = ⟨[UInt8.ofNat k].toArray⟩ := rfl
   rw [zeroKey, hw w, hw w', hb, bufferRead_of_le (by simp), bufferRead_of_le (by simp),
-    bufferRead_of_le (by simp),
     toList_toBeBytes_split, toList_toBeBytes_split, h1, h2, h3]
   apply ByteArray.ext
   simp [List.drop_append, List.take_of_length_le]
@@ -322,16 +244,16 @@ theorem pathBit_eq {index : U256} {e : Nat}
   by_cases h8 : n < 8
   · have hm : (pathMask (n + 1)).toNat = 2 ^ (120 + n) := by
       interval_cases n <;> rfl
-    rw [pathBit, decide_and_ne_zero hm, bitwiseOr, BitVec.toNat_or, Nat.testBit_or, hindex,
-      Nat.testBit_mul_two_pow, testBit_swap, hM _ (by omega), Nat.testBit_eq_decide_div_mod_eq]
+    rw [pathBit, decide_bitwiseAnd_ne_zero hm, bitwiseOr, BitVec.toNat_or, Nat.testBit_or, hindex,
+      Nat.testBit_mul_two_pow, testBit_ofBE_toLE, hM _ (by omega), Nat.testBit_eq_decide_div_mod_eq]
     have h1 : 96 ≤ 120 + n := by omega
     have h2 : 120 + n - 96 < 32 := by omega
     have hidx : (3 - (120 + n - 96) / 8) * 8 + (120 + n - 96) % 8 = n := by omega
     simp [h1, h2, hidx]
   · have hm : (pathMask (n + 1)).toNat = 2 ^ (104 + n) := by
       interval_cases n <;> rfl
-    rw [pathBit, decide_and_ne_zero hm, bitwiseOr, BitVec.toNat_or, Nat.testBit_or, hindex,
-      Nat.testBit_mul_two_pow, testBit_swap, hM _ (by omega), Nat.testBit_eq_decide_div_mod_eq]
+    rw [pathBit, decide_bitwiseAnd_ne_zero hm, bitwiseOr, BitVec.toNat_or, Nat.testBit_or, hindex,
+      Nat.testBit_mul_two_pow, testBit_ofBE_toLE, hM _ (by omega), Nat.testBit_eq_decide_div_mod_eq]
     have h1 : 96 ≤ 104 + n := by omega
     have h2 : 104 + n - 96 < 32 := by omega
     have hidx : (3 - (104 + n - 96) / 8) * 8 + (104 + n - 96) % 8 = n := by omega

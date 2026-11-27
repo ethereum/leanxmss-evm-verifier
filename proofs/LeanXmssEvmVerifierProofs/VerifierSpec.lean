@@ -3,7 +3,7 @@ module
 public import LeanXmssEvmVerifierProofs.VerifierRun
 public import LeanXmssEvmVerifierProofs.Digests
 public import LeanXmssEvmVerifierProofs.PathBridge
-import EthLib.Cryptography.Proofs.HashSig
+import EthLib.Cryptography.Proofs.Xmss.Verify
 
 /-!
 # The answer of the verifier is leanXMSS's
@@ -15,7 +15,7 @@ The code's digests, codeword tests, chains, leaves, paths and compare are those 
 
 namespace LeanXmssEvmVerifierProofs
 
-open EthLib.Base (U256)
+open EthLib.Base (U256 packBytes)
 open EthLib.Execution.Evm
 open EthLib.Cryptography.Xmss
 open EthLib.Cryptography.Xmss.Constants
@@ -23,12 +23,12 @@ open EthLib.Base.ByteOrder (ofBE toLE)
 open EthLib.Cryptography.Hash.Keccak (Lanes2 Lanes4)
 
 /-- The bytes of the two lanes read inside a slice of a buffer are the 16 bytes there. -/
-theorem digestBytes_read_bufferRead (data : ByteArray) {a n k : Nat} (hk : k + 16 ≤ n) :
-    digestBytes (Lanes2.read ⟨(bufferRead data a n).toArray⟩ k) =
+theorem packBytes_read_bufferRead (data : ByteArray) {a n k : Nat} (hk : k + 16 ≤ n) :
+    packBytes (Lanes2.read ⟨(bufferRead data a n).toArray⟩ k).bytes =
       ⟨(bufferRead data (a + k) 16).toArray⟩ := by
   have hs : k + 16 ≤ (⟨(bufferRead data a n).toArray⟩ : ByteArray).size := by
     simpa [ByteArray.size, bufferRead_length] using hk
-  rw [digestBytes, EthLib.Cryptography.Hash.Keccak.Lanes2.bytes_read _ _ hs]
+  rw [packBytes, EthLib.Cryptography.Hash.Keccak.Lanes2.bytes_read _ _ hs]
   congr 1
   apply Array.ext (by simp [bufferRead_length])
   intro j h1 h2
@@ -39,7 +39,8 @@ theorem chainValues_bytes (data : ByteArray) {a b : Nat} (hb : b + LAYER_SIG_SIZ
     (h : b + LAYER_SIG_SIZE ≤ (⟨(bufferRead data a 2404).toArray⟩ : ByteArray).size)
     (i : Fin V) :
     (⟨(bufferRead data (a + b + 16 + 16 * i.val) 16).toArray⟩ : ByteArray) =
-      digestBytes (decodeLayerSignature ⟨(bufferRead data a 2404).toArray⟩ b h).chainValues[i] := by
+      packBytes
+        (decodeLayerSignature ⟨(bufferRead data a 2404).toArray⟩ b h).chainValues[i].bytes := by
   have hi := i.isLt
   have hv : (decodeLayerSignature ⟨(bufferRead data a 2404).toArray⟩ b h).chainValues[i] =
       Lanes2.read ⟨(bufferRead data a 2404).toArray⟩ (b + 16 + 16 * i.val) := by
@@ -47,15 +48,15 @@ theorem chainValues_bytes (data : ByteArray) {a b : Nat} (hb : b + LAYER_SIG_SIZ
   have hle : b + 16 + 16 * i.val + 16 ≤ 2404 := by
     simp only [LAYER_SIG_SIZE, V, RANDOMIZER_LEN, DIGEST_LEN, LAYER_HEIGHT] at hb hi
     omega
-  rw [hv, digestBytes_read_bufferRead _ hle, ← Nat.add_assoc, ← Nat.add_assoc]
+  rw [hv, packBytes_read_bufferRead _ hle, ← Nat.add_assoc, ← Nat.add_assoc]
 
 /-- The siblings of a layer signature are the 16-byte slices after its chain values. -/
 theorem path_bytes (data : ByteArray) {a b : Nat} (hb : b + LAYER_SIG_SIZE ≤ 2404)
     (h : b + LAYER_SIG_SIZE ≤ (⟨(bufferRead data a 2404).toArray⟩ : ByteArray).size)
     (leaf : Digest) (k : Nat) (hk : k < LAYER_HEIGHT) :
     (⟨(bufferRead data (a + b + 16 + 928 + 16 * k) 16).toArray⟩ : ByteArray) =
-      digestBytes ((decodeLayerSignature ⟨(bufferRead data a 2404).toArray⟩ b h).path.toList.getD
-        k leaf) := by
+      packBytes ((decodeLayerSignature ⟨(bufferRead data a 2404).toArray⟩ b h).path.toList.getD
+        k leaf).bytes := by
   rw [List.getD_eq_getElem?_getD, List.getElem?_eq_getElem (by simpa using hk), Option.getD_some]
   have hv : (decodeLayerSignature ⟨(bufferRead data a 2404).toArray⟩ b h).path.toList[k]'
       (by simpa using hk) =
@@ -64,7 +65,7 @@ theorem path_bytes (data : ByteArray) {a b : Nat} (hb : b + LAYER_SIG_SIZE ≤ 2
   have hle : b + 16 + 928 + 16 * k + 16 ≤ 2404 := by
     simp only [LAYER_SIG_SIZE, V, RANDOMIZER_LEN, DIGEST_LEN, LAYER_HEIGHT] at hb hk
     omega
-  rw [hv, digestBytes_read_bufferRead _ hle, ← Nat.add_assoc, ← Nat.add_assoc, ← Nat.add_assoc]
+  rw [hv, packBytes_read_bufferRead _ hle, ← Nat.add_assoc, ← Nat.add_assoc, ← Nat.add_assoc]
 
 /-- An OR with a number below `2^p` adds it to a multiple of `2^p`. -/
 theorem toNat_or_mul_pow {x y : U256} {X p : Nat} (hx : x.toNat = X * 2 ^ p)
@@ -72,12 +73,13 @@ theorem toNat_or_mul_pow {x y : U256} {X p : Nat} (hx : x.toNat = X * 2 ^ p)
   rw [BitVec.toNat_or, hx, ← Nat.shiftLeft_eq, Nat.shiftLeft_add_eq_or_of_lt hy]
 
 /-- The word `P | A` of an address: the key word, its index and layer bits, then its type byte. -/
-theorem holdsPA_tag {pk w t : U256} {key : PublicKey}
+theorem keyHolds_tag {pk w t : U256} {key : PublicKey}
     (hpk : decodePublicKey (wordBytes pk) = .ok key) {address : Address}
     (hw : w.toNat = (ofBE (toLE 4 address.lo.toNat).toList * 2 ^ 24 +
       ofBE (toLE 3 address.hi.val).toList) * 2 ^ 72)
     (ht : t.toNat = (address.tau.val + 32 * address.mu.val) * 2 ^ 64) :
-    HoldsPA (bitwiseOr (bitwiseOr (bitwiseShl 128#256 pk) w) t) key.publicParam address := by
+    KeyHolds (wordBytes (bitwiseOr (bitwiseOr (bitwiseShl 128#256 pk) w) t)) key.publicParam
+      address := by
   have htau := address.tau.isLt
   have hmu := address.mu.isLt
   have hlt : t.toNat < 2 ^ 72 := by
@@ -87,7 +89,7 @@ theorem holdsPA_tag {pk w t : U256} {key : PublicKey}
     rw [toNat_or_mul_pow hw hlt, ht, ofBE_encode]
     omega
   rw [bitwiseOr, bitwiseOr, BitVec.or_assoc]
-  exact holdsPA_of_encode hpk hc
+  exact keyHolds_of_encode hpk hc
 
 /-- The layer bit of the field `hi` of an address, read big-endian. -/
 theorem ofBE_layerHi (layer : Layer) :
@@ -106,26 +108,6 @@ theorem eq_zero_of_ofBE_toLE {e : Nat} (he : e < 2 ^ 32)
   simp only [EthLib.Base.ByteOrder.ofLE_toLE] at this
   omega
 
-/-- A layer whose digest is no codeword leads to no root. -/
-theorem layerRoot_run_none {publicParam : PublicParam} {layer : Layer} {e : Nat}
-    {msg : Array UInt64} {ls : LayerSignature}
-    (h : codeword? (messageDigest hashId publicParam layer (UInt32.ofNat e) msg
-      ls.randomizer).run = none) :
-    (layerRoot hashId publicParam layer e msg ls).run = none := by
-  simp [layerRoot, otsLeaf, h]
-
-/-- A layer whose digest is a codeword leads to the root that its leaf's path climbs to. -/
-theorem layerRoot_run_some {publicParam : PublicParam} {layer : Layer} {e : Nat}
-    {msg : Array UInt64} {ls : LayerSignature} {x : Vector (Fin CHAIN_LENGTH) V}
-    (h : codeword? (messageDigest hashId publicParam layer (UInt32.ofNat e) msg
-      ls.randomizer).run = some x) :
-    (layerRoot hashId publicParam layer e msg ls).run =
-      some (fold hashId publicParam layer e (otsLeafHash hashId publicParam layer (UInt32.ofNat e)
-        (Vector.ofFn fun i : Fin V => (chain hashId publicParam layer (UInt32.ofNat e) i x[i]
-          (CHAIN_LENGTH - 1 - x[i]) (by have := x[i].isLt; omega)
-            ls.chainValues[i]).run)).run ls.path).run := by
-  simp [layerRoot, otsLeaf, h, EthLib.Cryptography.HashSig.ofFnInOrder_run]
-
 /-- The root that the code reaches on a layer is the root of leanXMSS, when its digest is a
 codeword: the key word `pk`, the index word `w` of key `e`, and the signature `ls` at `o`. -/
 theorem first16_layerRoot {pk w index digits : U256} {key : PublicKey}
@@ -135,16 +117,16 @@ theorem first16_layerRoot {pk w index digits : U256} {key : PublicKey}
     {x : Vector (Fin CHAIN_LENGTH) V} (hD : digits = digitWord D) (hx : codeword? D = some x)
     {data : ByteArray} {o : Nat} {ls : LayerSignature}
     (hy : ∀ i : Fin V, (⟨(bufferRead data (o + 16 * i.val) 16).toArray⟩ : ByteArray) =
-      digestBytes ls.chainValues[i])
+      packBytes ls.chainValues[i].bytes)
     (hsib : ∀ (leaf : Digest) (k : Nat), k < LAYER_HEIGHT →
       (⟨(bufferRead data (o + 928 + 16 * k) 16).toArray⟩ : ByteArray) =
-        digestBytes (ls.path.toList.getD k leaf)) :
+        packBytes (ls.path.toList.getD k leaf).bytes) :
     first16 (layerRootWord (bitwiseOr (bitwiseShl 128#256 pk) w)
         (bitwiseOr (bitwiseShl 128#256 pk) (treeTag layer)) index digits data o) =
-      digestBytes (fold hashId key.publicParam layer e (otsLeafHash hashId key.publicParam layer
+      packBytes (fold hashId key.publicParam layer e (otsLeafHash hashId key.publicParam layer
         (UInt32.ofNat e) (Vector.ofFn fun i : Fin V => (chain hashId key.publicParam layer
           (UInt32.ofNat e) i x[i] (CHAIN_LENGTH - 1 - x[i]) (by have := x[i].isLt; omega)
-            ls.chainValues[i]).run)).run ls.path).run := by
+            ls.chainValues[i]).run)).run ls.path).run.bytes := by
   have hu : (UInt32.ofNat e).toNat = e := UInt32.toNat_ofNat_of_lt' he
   have hhi := ofBE_layerHi layer
   -- The index and layer bits of the word of the key.
@@ -154,16 +136,16 @@ theorem first16_layerRoot {pk w index digits : U256} {key : PublicKey}
     intro address hlo hhi'
     rw [hlo, hhi', hu, hhi, hw]
     omega
-  have hX := holdsPA_tag (t := 0x410000000000000000#256) hpk
+  have hX := keyHolds_tag (t := 0x410000000000000000#256) hpk
     (address := .chain layer (UInt32.ofNat e) ⟨2, by decide⟩) (hw' _ rfl rfl)
     (by simp [Address.tau, Address.mu])
-  have hY := holdsPA_tag (t := 0x210000000000000000#256) hpk
+  have hY := keyHolds_tag (t := 0x210000000000000000#256) hpk
     (address := .chain layer (UInt32.ofNat e) ⟨1, by decide⟩) (hw' _ rfl rfl)
     (by simp [Address.tau, Address.mu])
-  have hZ := holdsPA_tag (t := 0x10000000000000000#256) hpk
+  have hZ := keyHolds_tag (t := 0x10000000000000000#256) hpk
     (address := .chain layer (UInt32.ofNat e) ⟨0, by decide⟩) (hw' _ rfl rfl)
     (by simp [Address.tau, Address.mu])
-  have hL := holdsPA_tag (t := 0x20000000000000000#256) hpk
+  have hL := keyHolds_tag (t := 0x20000000000000000#256) hpk
     (address := .leaf layer (UInt32.ofNat e)) (hw' _ rfl rfl)
     (by simp [Address.tau, Address.mu])
   rw [bitwiseOr, BitVec.or_comm] at hL
@@ -184,9 +166,9 @@ theorem first16_layerRoot {pk w index digits : U256} {key : PublicKey}
       (fun n hn => pathKey_holds hpk layer he hindex hn) hleaf (hsib _)
 
 /-- The bytes of the two lanes read in a buffer are the 16 bytes there. -/
-theorem digestBytes_read (b : ByteArray) {k : Nat} (hk : k + 16 ≤ b.size) :
-    digestBytes (Lanes2.read b k) = ⟨(bufferRead b k 16).toArray⟩ := by
-  rw [digestBytes, EthLib.Cryptography.Hash.Keccak.Lanes2.bytes_read _ _ hk]
+theorem packBytes_read (b : ByteArray) {k : Nat} (hk : k + 16 ≤ b.size) :
+    packBytes (Lanes2.read b k).bytes = ⟨(bufferRead b k 16).toArray⟩ := by
+  rw [packBytes, EthLib.Cryptography.Hash.Keccak.Lanes2.bytes_read _ _ hk]
   congr 1
   apply Array.ext (by simp [bufferRead_length])
   intro j h1 h2
@@ -194,12 +176,6 @@ theorem digestBytes_read (b : ByteArray) {k : Nat} (hk : k + 16 ≤ b.size) :
   simp [EthLib.Base.readBytes_eq_ofFn_data, bufferRead_eq, EthLib.Base.byteAtOrZero,
     show k + j < b.size by omega]
   rfl
-
-/-- Two digests with the same bytes are the same digest. -/
-theorem eq_of_digestBytes_eq {a b : Digest} (h : digestBytes a = digestBytes b) : a = b := by
-  apply EthLib.Cryptography.Hash.Keccak.Lanes2.bytes_injective
-  apply Vector.toArray_inj.mp
-  exact congrArg ByteArray.data h
 
 /-- The first 16 bytes of a word are its high 128 bits, big-endian. -/
 theorem first16_eq (w : U256) :
@@ -226,16 +202,17 @@ theorem isZero_shr_xor (a b : U256) :
   simp only [hiff]
 
 /-- The code's compare of a root word with the key word is the compare of the roots. -/
-theorem isZero_compare {R pk : U256} {root : Digest} (hR : first16 R = digestBytes root) :
+theorem isZero_compare {R pk : U256} {root : Digest} (hR : first16 R = packBytes root.bytes) :
     isZero (bitwiseShr 128#256 (bitwiseXor R pk)) =
       if root = Lanes2.read (wordBytes pk) 0 then 1 else 0 := by
-  have hpk : first16 pk = digestBytes (Lanes2.read (wordBytes pk) 0) := by
-    rw [digestBytes_read _ (by simp [wordBytes, ByteArray.size])]
+  have hpk : first16 pk = packBytes (Lanes2.read (wordBytes pk) 0).bytes := by
+    rw [packBytes_read _ (by simp [wordBytes, ByteArray.size])]
     rfl
   have hiff : R.toNat / 2 ^ 128 = pk.toNat / 2 ^ 128 ↔ root = Lanes2.read (wordBytes pk) 0 := by
     constructor
     · intro h
-      apply eq_of_digestBytes_eq
+      apply Lanes2.bytes_injective
+      apply EthLib.Base.packBytes_injective
       rw [← hR, ← hpk, first16_eq, first16_eq, h]
     · intro h
       have he : first16 R = first16 pk := by
@@ -343,24 +320,24 @@ theorem codeVerify_eq {data : ByteArray} {offset length msg pk : U256}
     omega
   -- The chain values and the siblings of both layers, where the code reads them.
   have hyB : ∀ i : Fin V, (⟨(bufferRead data ((add offset 4#256).toNat + 16 + 16 * i.val)
-      16).toArray⟩ : ByteArray) = digestBytes sig.bottom.chainValues[i] := by
+      16).toArray⟩ : ByteArray) = packBytes sig.bottom.chainValues[i].bytes := by
     intro i
     rw [hadd4, hbot]
     exact chainValues_bytes data (by decide) hb4 i
   have hsibB : ∀ (leaf : Digest) (k : Nat), k < LAYER_HEIGHT →
       (⟨(bufferRead data ((add offset 4#256).toNat + 16 + 928 + 16 * k) 16).toArray⟩ :
-        ByteArray) = digestBytes (sig.bottom.path.toList.getD k leaf) := by
+        ByteArray) = packBytes (sig.bottom.path.toList.getD k leaf).bytes := by
     intro leaf k hk
     rw [hadd4, hbot]
     exact path_bytes data (by decide) hb4 leaf k hk
   have hyT : ∀ i : Fin V, (⟨(bufferRead data ((add offset 1204#256).toNat + 16 + 16 * i.val)
-      16).toArray⟩ : ByteArray) = digestBytes sig.top.chainValues[i] := by
+      16).toArray⟩ : ByteArray) = packBytes sig.top.chainValues[i].bytes := by
     intro i
     rw [hadd12, htop]
     exact chainValues_bytes data (by decide) hb12 i
   have hsibT : ∀ (leaf : Digest) (k : Nat), k < LAYER_HEIGHT →
       (⟨(bufferRead data ((add offset 1204#256).toNat + 16 + 928 + 16 * k) 16).toArray⟩ :
-        ByteArray) = digestBytes (sig.top.path.toList.getD k leaf) := by
+        ByteArray) = packBytes (sig.top.path.toList.getD k leaf).bytes := by
     intro leaf k hk
     rw [hadd12, htop]
     exact path_bytes data (by decide) hb12 leaf k hk

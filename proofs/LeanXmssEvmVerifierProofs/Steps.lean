@@ -25,7 +25,7 @@ syntax "lx_stepC" : tactic
 
 macro_rules
   | `(tactic| lx_stepC) => `(tactic| ((evm_stepK [CODE, CODE_NUMBER, CODE_SIZE])
-      <;> try simp (disch := decide) only [memoryReadBytes_bufferRead, memoryReadBytes_wordBytes,
-        Nat.add_zero]))
+      <;> try simp (disch := first | (rw [size_wordBytes]; decide) | decide) only
+        [memoryReadBytes_bufferRead, memoryReadBytes_eq_bufferRead (wordBytes _), Nat.add_zero]))
 
 end LeanXmssEvmVerifierProofs

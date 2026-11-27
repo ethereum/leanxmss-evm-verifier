@@ -45,28 +45,4 @@ theorem revertEmpty' {stack : List U256} (hfork : .shapella ≤ fork) (hlt : pc 
     (by simp only [show pc + 1 + 1 = pc + 2 by omega]; exact h2)).consequence (fun _ h => h)
     fun _ h => answer_none_of_halted h
 
-/-- A part of a buffer inside it is a read of the buffer. -/
-theorem memoryReadBytes_eq_bufferRead (b : ByteArray) {a k : Nat} (h : a + k ≤ b.size) :
-    memoryReadBytes b a k = ⟨(bufferRead b a k).toArray⟩ := by
-  unfold memoryReadBytes
-  split
-  · rename_i hk
-    subst hk
-    simp [bufferRead_eq]
-  · apply ByteArray.ext
-    simp only [ByteArray.data_extract]
-    apply Array.toList_inj.mp
-    simp only [Array.toList_extract, List.extract_eq_take_drop, bufferRead_eq]
-    apply List.ext_getElem
-    · simp
-      omega
-    · intro i h1 h2
-      simp at h1 h2 ⊢
-      simp [EthLib.Base.byteAtOrZero, show a + i < b.size by omega, ByteArray.getElem_eq_getElem_data]
-
-/-- A part of the bytes of a word is a read of them, whose size a step knows. -/
-theorem memoryReadBytes_wordBytes (w : U256) {a k : Nat} (h : a + k ≤ 32) :
-    memoryReadBytes (wordBytes w) a k = ⟨(bufferRead (wordBytes w) a k).toArray⟩ :=
-  memoryReadBytes_eq_bufferRead _ (by rw [size_wordBytes]; exact h)
-
 end LeanXmssEvmVerifierProofs

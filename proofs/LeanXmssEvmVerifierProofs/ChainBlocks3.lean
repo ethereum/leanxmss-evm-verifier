@@ -51,8 +51,9 @@ theorem chain6_3 {t d ret pX pY pZ pL : U256} {rest : List U256}
   refine Triple.of_imp fun _ h => ?_
   simp only [chainEnd, first16, stepWord, indexWord, Nat.reduceMul, Nat.reducePow]
   exact addEnd h (by evm_fact) (by evm_fact) (by evm_size)
-    (by (try simp (disch := decide) only [memoryReadBytes_bufferRead, memoryReadBytes_wordBytes,
-      Nat.add_zero]) <;> rfl) rfl
+    (by (try simp (disch := first | (rw [size_wordBytes]; decide) | decide) only
+      [memoryReadBytes_bufferRead, memoryReadBytes_eq_bufferRead (wordBytes _), Nat.add_zero])
+      <;> rfl) rfl
     (by evm_fact) (by evm_fact) (by evm_fact) (by evm_fact)
 
 /-- Chain 6, digit 2. -/
@@ -97,8 +98,9 @@ theorem chain6_2 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest :
   refine Triple.of_imp fun _ h => ?_
   simp only [chainEnd, first16, stepWord, indexWord, Nat.reduceMul, Nat.reducePow]
   exact addEnd h (by evm_fact) (by evm_fact) (by evm_size)
-    (by (try simp (disch := decide) only [memoryReadBytes_bufferRead, memoryReadBytes_wordBytes,
-      Nat.add_zero]) <;> rfl) rfl
+    (by (try simp (disch := first | (rw [size_wordBytes]; decide) | decide) only
+      [memoryReadBytes_bufferRead, memoryReadBytes_eq_bufferRead (wordBytes _), Nat.add_zero])
+      <;> rfl) rfl
     (by evm_fact) (by evm_fact) (by evm_fact) (by evm_fact)
 
 /-- Chain 6, digit 1. -/
@@ -158,8 +160,9 @@ theorem chain6_1 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest :
   refine Triple.of_imp fun _ h => ?_
   simp only [chainEnd, first16, stepWord, indexWord, Nat.reduceMul, Nat.reducePow]
   exact addEnd h (by evm_fact) (by evm_fact) (by evm_size)
-    (by (try simp (disch := decide) only [memoryReadBytes_bufferRead, memoryReadBytes_wordBytes,
-      Nat.add_zero]) <;> rfl) rfl
+    (by (try simp (disch := first | (rw [size_wordBytes]; decide) | decide) only
+      [memoryReadBytes_bufferRead, memoryReadBytes_eq_bufferRead (wordBytes _), Nat.add_zero])
+      <;> rfl) rfl
     (by evm_fact) (by evm_fact) (by evm_fact) (by evm_fact)
 
 /-- Chain 6, digit 0. -/
@@ -227,8 +230,9 @@ theorem chain6_0 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest :
   refine Triple.of_imp fun _ h => ?_
   simp only [chainEnd, first16, stepWord, indexWord, Nat.reduceMul, Nat.reducePow]
   exact addEnd h (by evm_fact) (by evm_fact) (by evm_size)
-    (by (try simp (disch := decide) only [memoryReadBytes_bufferRead, memoryReadBytes_wordBytes,
-      Nat.add_zero]) <;> rfl) rfl
+    (by (try simp (disch := first | (rw [size_wordBytes]; decide) | decide) only
+      [memoryReadBytes_bufferRead, memoryReadBytes_eq_bufferRead (wordBytes _), Nat.add_zero])
+      <;> rfl) rfl
     (by evm_fact) (by evm_fact) (by evm_fact) (by evm_fact)
 
 /-- Chain 7, digit 3. -/
@@ -258,8 +262,9 @@ theorem chain7_3 {t d ret pX pY pZ pL : U256} {rest : List U256}
   refine Triple.of_imp fun _ h => ?_
   simp only [chainEnd, first16, stepWord, indexWord, Nat.reduceMul, Nat.reducePow]
   exact addEnd h (by evm_fact) (by evm_fact) (by evm_size)
-    (by (try simp (disch := decide) only [memoryReadBytes_bufferRead, memoryReadBytes_wordBytes,
-      Nat.add_zero]) <;> rfl) rfl
+    (by (try simp (disch := first | (rw [size_wordBytes]; decide) | decide) only
+      [memoryReadBytes_bufferRead, memoryReadBytes_eq_bufferRead (wordBytes _), Nat.add_zero])
+      <;> rfl) rfl
     (by evm_fact) (by evm_fact) (by evm_fact) (by evm_fact)
 
 /-- Chain 7, digit 2. -/
@@ -304,8 +309,9 @@ theorem chain7_2 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest :
   refine Triple.of_imp fun _ h => ?_
   simp only [chainEnd, first16, stepWord, indexWord, Nat.reduceMul, Nat.reducePow]
   exact addEnd h (by evm_fact) (by evm_fact) (by evm_size)
-    (by (try simp (disch := decide) only [memoryReadBytes_bufferRead, memoryReadBytes_wordBytes,
-      Nat.add_zero]) <;> rfl) rfl
+    (by (try simp (disch := first | (rw [size_wordBytes]; decide) | decide) only
+      [memoryReadBytes_bufferRead, memoryReadBytes_eq_bufferRead (wordBytes _), Nat.add_zero])
+      <;> rfl) rfl
     (by evm_fact) (by evm_fact) (by evm_fact) (by evm_fact)
 
 /-- Chain 7, digit 1. -/
@@ -365,8 +371,9 @@ theorem chain7_1 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest :
   refine Triple.of_imp fun _ h => ?_
   simp only [chainEnd, first16, stepWord, indexWord, Nat.reduceMul, Nat.reducePow]
   exact addEnd h (by evm_fact) (by evm_fact) (by evm_size)
-    (by (try simp (disch := decide) only [memoryReadBytes_bufferRead, memoryReadBytes_wordBytes,
-      Nat.add_zero]) <;> rfl) rfl
+    (by (try simp (disch := first | (rw [size_wordBytes]; decide) | decide) only
+      [memoryReadBytes_bufferRead, memoryReadBytes_eq_bufferRead (wordBytes _), Nat.add_zero])
+      <;> rfl) rfl
     (by evm_fact) (by evm_fact) (by evm_fact) (by evm_fact)
 
 /-- Chain 7, digit 0. -/
@@ -434,8 +441,9 @@ theorem chain7_0 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest :
   refine Triple.of_imp fun _ h => ?_
   simp only [chainEnd, first16, stepWord, indexWord, Nat.reduceMul, Nat.reducePow]
   exact addEnd h (by evm_fact) (by evm_fact) (by evm_size)
-    (by (try simp (disch := decide) only [memoryReadBytes_bufferRead, memoryReadBytes_wordBytes,
-      Nat.add_zero]) <;> rfl) rfl
+    (by (try simp (disch := first | (rw [size_wordBytes]; decide) | decide) only
+      [memoryReadBytes_bufferRead, memoryReadBytes_eq_bufferRead (wordBytes _), Nat.add_zero])
+      <;> rfl) rfl
     (by evm_fact) (by evm_fact) (by evm_fact) (by evm_fact)
 
 end LeanXmssEvmVerifierProofs

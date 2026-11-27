@@ -80,7 +80,7 @@ theorem pathStart_false (hfork : .fusaka ≤ fork) {tree index node ret : U256} 
   have h0 := Known.readPrefix h (s := 48) (data := W) (offset := 0) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hf
-  rcases hf with rfl | rfl | rfl | rfl <;> lx_fact
+  rcases hf with rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path, level 1, when the bit of the level is set. -/
 theorem pathStart_true (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W
@@ -140,7 +140,7 @@ theorem pathStart_true (hfork : .fusaka ≤ fork) {tree index node ret : U256} {
       evm_fact)
   refine Known.mono h0 fun f hf => ?_
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hf
-  rcases hf with rfl | rfl | rfl | rfl <;> lx_fact
+  rcases hf with rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path, level 2, when the bit of the level is clear. -/
 theorem pathLevel2_false (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256}
@@ -202,7 +202,7 @@ theorem pathLevel2_false (hfork : .fusaka ≤ fork) {tree index node ret : U256}
   have h0 := Known.readPrefix h (s := 176) (data := W) (offset := 16) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hf
-  rcases hf with rfl | rfl | rfl | rfl <;> lx_fact
+  rcases hf with rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path, level 2, when the bit of the level is set. -/
 theorem pathLevel2_true (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256}
@@ -267,7 +267,7 @@ theorem pathLevel2_true (hfork : .fusaka ≤ fork) {tree index node ret : U256} 
       evm_fact)
   refine Known.mono h0 fun f hf => ?_
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hf
-  rcases hf with rfl | rfl | rfl | rfl <;> lx_fact
+  rcases hf with rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path, level 3, when the bit of the level is clear. -/
 theorem pathLevel3_false (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256}
@@ -329,7 +329,7 @@ theorem pathLevel3_false (hfork : .fusaka ≤ fork) {tree index node ret : U256}
   have h0 := Known.readPrefix h (s := 48) (data := W) (offset := 32) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hf
-  rcases hf with rfl | rfl | rfl | rfl <;> lx_fact
+  rcases hf with rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path, level 3, when the bit of the level is set. -/
 theorem pathLevel3_true (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256}
@@ -393,7 +393,7 @@ theorem pathLevel3_true (hfork : .fusaka ≤ fork) {tree index node ret : U256} 
       l 16).toArray⟩ ++ ⟨(bufferRead R r 16).toArray⟩)))) (offset := 0) (length := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hf
-  rcases hf with rfl | rfl | rfl | rfl <;> lx_fact
+  rcases hf with rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path, level 4, when the bit of the level is clear. -/
 theorem pathLevel4_false (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256}
@@ -455,7 +455,7 @@ theorem pathLevel4_false (hfork : .fusaka ≤ fork) {tree index node ret : U256}
   have h0 := Known.readPrefix h (s := 176) (data := W) (offset := 48) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hf
-  rcases hf with rfl | rfl | rfl | rfl <;> lx_fact
+  rcases hf with rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path, level 4, when the bit of the level is set. -/
 theorem pathLevel4_true (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256}
@@ -520,7 +520,7 @@ theorem pathLevel4_true (hfork : .fusaka ≤ fork) {tree index node ret : U256} 
       evm_fact)
   refine Known.mono h0 fun f hf => ?_
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hf
-  rcases hf with rfl | rfl | rfl | rfl <;> lx_fact
+  rcases hf with rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path, level 5, when the bit of the level is clear. -/
 theorem pathLevel5_false (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256}
@@ -582,7 +582,7 @@ theorem pathLevel5_false (hfork : .fusaka ≤ fork) {tree index node ret : U256}
   have h0 := Known.readPrefix h (s := 48) (data := W) (offset := 64) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hf
-  rcases hf with rfl | rfl | rfl | rfl <;> lx_fact
+  rcases hf with rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path, level 5, when the bit of the level is set. -/
 theorem pathLevel5_true (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256}
@@ -646,7 +646,7 @@ theorem pathLevel5_true (hfork : .fusaka ≤ fork) {tree index node ret : U256} 
       l 16).toArray⟩ ++ ⟨(bufferRead R r 16).toArray⟩)))) (offset := 0) (length := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hf
-  rcases hf with rfl | rfl | rfl | rfl <;> lx_fact
+  rcases hf with rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path, level 6, when the bit of the level is clear. -/
 theorem pathLevel6_false (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256}
@@ -708,7 +708,7 @@ theorem pathLevel6_false (hfork : .fusaka ≤ fork) {tree index node ret : U256}
   have h0 := Known.readPrefix h (s := 176) (data := W) (offset := 80) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hf
-  rcases hf with rfl | rfl | rfl | rfl <;> lx_fact
+  rcases hf with rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path, level 6, when the bit of the level is set. -/
 theorem pathLevel6_true (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256}
@@ -773,7 +773,7 @@ theorem pathLevel6_true (hfork : .fusaka ≤ fork) {tree index node ret : U256} 
       evm_fact)
   refine Known.mono h0 fun f hf => ?_
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hf
-  rcases hf with rfl | rfl | rfl | rfl <;> lx_fact
+  rcases hf with rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path, level 7, when the bit of the level is clear. -/
 theorem pathLevel7_false (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256}
@@ -835,7 +835,7 @@ theorem pathLevel7_false (hfork : .fusaka ≤ fork) {tree index node ret : U256}
   have h0 := Known.readPrefix h (s := 48) (data := W) (offset := 96) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hf
-  rcases hf with rfl | rfl | rfl | rfl <;> lx_fact
+  rcases hf with rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path, level 7, when the bit of the level is set. -/
 theorem pathLevel7_true (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256}
@@ -899,7 +899,7 @@ theorem pathLevel7_true (hfork : .fusaka ≤ fork) {tree index node ret : U256} 
       l 16).toArray⟩ ++ ⟨(bufferRead R r 16).toArray⟩)))) (offset := 0) (length := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hf
-  rcases hf with rfl | rfl | rfl | rfl <;> lx_fact
+  rcases hf with rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path, level 8, when the bit of the level is clear. -/
 theorem pathLevel8_false (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256}
@@ -954,7 +954,7 @@ theorem pathLevel8_false (hfork : .fusaka ≤ fork) {tree index node ret : U256}
   have h0 := Known.readPrefix h (s := 176) (data := W) (offset := 112) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hf
-  rcases hf with rfl | rfl | rfl | rfl <;> lx_fact
+  rcases hf with rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path, level 8, when the bit of the level is set. -/
 theorem pathLevel8_true (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256}
@@ -1012,6 +1012,6 @@ theorem pathLevel8_true (hfork : .fusaka ≤ fork) {tree index node ret : U256} 
       evm_fact)
   refine Known.mono h0 fun f hf => ?_
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hf
-  rcases hf with rfl | rfl | rfl | rfl <;> lx_fact
+  rcases hf with rfl | rfl | rfl | rfl <;> evm_fact
 
 end LeanXmssEvmVerifierProofs

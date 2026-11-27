@@ -85,10 +85,6 @@ theorem verifyShort (hfork : .fusaka ≤ fork) {length offset msg pk ret : U256}
       (fun evm => ∃ g, k ≤ g ∧ Known CODE message ret.toNat (0 :: rest) size facts g state
         substate returnData evm) := by
   unfold SHORT_GAS at hgas
-  -- The jump test of the return address is hidden from `assumption`, which would unfold it.
-  obtain hr : Nonempty (PLift (isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)) :=
-    ⟨⟨hret⟩⟩
-  clear hret
   lx_stepC
   lx_stepC
   lx_stepC
@@ -107,7 +103,6 @@ theorem verifyShort (hfork : .fusaka ≤ fork) {length offset msg pk ret : U256}
   lx_stepC
   lx_stepC
   lx_stepC
-  obtain ⟨⟨hret⟩⟩ := hr
   refine Triple.seq (Known.of_at fun _ => jump (by evm_code [CODE, CODE_NUMBER, CODE_SIZE])
     (by evm_code [CODE, CODE_NUMBER, CODE_SIZE]) (by omega) hret) ?_
   exact Triple.of_imp fun _ h => ⟨_, by omega, h⟩
@@ -124,10 +119,6 @@ theorem verifyExit {a₁ a₂ a₃ a₄ a₅ v length offset msg pk ret : U256} 
       (fun evm => ∃ g, k ≤ g ∧ Known CODE message ret.toNat (v :: rest) 1536
         ((64, wordBytes 0x80) :: keep 64 32 facts) g state substate returnData evm) := by
   unfold EXIT_GAS at hgas
-  -- The jump test of the return address is hidden from `assumption`, which would unfold it.
-  obtain hr : Nonempty (PLift (isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)) :=
-    ⟨⟨hret⟩⟩
-  clear hret
   lx_stepC
   lx_stepC
   lx_stepC
@@ -151,7 +142,6 @@ theorem verifyExit {a₁ a₂ a₃ a₄ a₅ v length offset msg pk ret : U256} 
   lx_stepC
   lx_stepC
   lx_stepC
-  obtain ⟨⟨hret⟩⟩ := hr
   refine Triple.seq (Known.of_at fun _ => jump (by evm_code [CODE, CODE_NUMBER, CODE_SIZE])
     (by evm_code [CODE, CODE_NUMBER, CODE_SIZE]) (by omega) hret) ?_
   exact Triple.of_imp fun _ h => ⟨_, by omega, h⟩

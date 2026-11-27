@@ -16,31 +16,27 @@ So the ends that the code writes are the lanes of the chain ends of the one-time
 
 namespace LeanXmssEvmVerifierProofs
 
-open EthLib.Base (U256)
+open EthLib.Base (U256 packBytes)
 open EthLib.Execution.Evm
 open EthLib.Cryptography.Xmss
 open EthLib.Cryptography.Xmss.Constants
 open EthLib.Cryptography.Hash.Keccak (Lanes2 Lanes4 lanesBytes)
 
-/-- The 16 bytes of a digest, as the code keeps them. -/
-def digestBytes (v : Digest) : ByteArray :=
-  ⟨v.bytes.toArray⟩
-
-/-- The word `P | A` holds the lanes of a public parameter, then those of an address. -/
-def HoldsPA (pa : U256) (publicParam : PublicParam) (address : Address) : Prop :=
-  wordBytes pa = ⟨(lanesBytes #[publicParam.lo, publicParam.hi, address.encode.lo,
+/-- The 32 bytes of a key hold the lanes of a public parameter, then those of an address. -/
+def KeyHolds (key : ByteArray) (publicParam : PublicParam) (address : Address) : Prop :=
+  key = ⟨(lanesBytes #[publicParam.lo, publicParam.hi, address.encode.lo,
     address.encode.hi]).toArray⟩
 
 /-- The first 16 bytes of the hash word of some lanes are the first half of their hash. -/
 theorem first16_keccak_lanes (a : Array UInt64) :
-    first16 (keccak ⟨(lanesBytes a).toArray⟩) = digestBytes (halfOf 0 (hash a)) := by
+    first16 (keccak ⟨(lanesBytes a).toArray⟩) = packBytes (halfOf 0 (hash a)).bytes := by
   have hk : EthLib.Cryptography.Hash.Keccak.keccak256 ⟨(lanesBytes a).toArray⟩ =
       (EthLib.Cryptography.Xmss.hash a).bytes :=
     (EthLib.Cryptography.Hash.Keccak.keccak256Lanes_lanesBytes a).symm
   have hsplit : (EthLib.Cryptography.Xmss.hash a).bytes.toList =
       (halfOf 0 (EthLib.Cryptography.Xmss.hash a)).bytes.toList ++
         (halfOf 1 (EthLib.Cryptography.Xmss.hash a)).bytes.toList := rfl
-  unfold first16 keccak wordBytes digestBytes
+  unfold first16 keccak wordBytes packBytes
   rw [hk, U256.toBeBytes_fromBeBytes]
   have hb : bufferRead ⟨(EthLib.Cryptography.Xmss.hash a).bytes.toList.toArray⟩ 0 16 =
       (EthLib.Cryptography.Xmss.hash a).bytes.toList.take 16 := by
@@ -91,15 +87,16 @@ private theorem first16_indexWord {i : Nat} (hi : i < 256) :
 
 /-- A chain step of the code is the step of chain `i` from position `mu`. -/
 theorem first16_stepWord {pa : U256} {publicParam : PublicParam} {layer : Layer} {e : UInt32}
-    {mu : Fin (CHAIN_LENGTH - 1)} (h : HoldsPA pa publicParam (.chain layer e mu)) (i : Fin V)
+    {mu : Fin (CHAIN_LENGTH - 1)} (h : KeyHolds (wordBytes pa) publicParam (.chain layer e mu))
+    (i : Fin V)
     (value : Digest) :
-    first16 (stepWord pa i.val (digestBytes value)) =
-      digestBytes (chainStep hashId publicParam layer e i mu value).run := by
+    first16 (stepWord pa i.val (packBytes value.bytes)) =
+      packBytes (chainStep hashId publicParam layer e i mu value).run.bytes := by
   have hi : i.val < 256 := by
     have := i.isLt
     unfold V at this
     omega
-  have hv : digestBytes value = ⟨(lanesBytes value.toArray).toArray⟩ := by
+  have hv : packBytes value.bytes = ⟨(lanesBytes value.toArray).toArray⟩ := by
     rw [EthLib.Cryptography.Hash.Keccak.lanesBytes_lanes2]
     rfl
   unfold stepWord
@@ -110,26 +107,26 @@ theorem first16_stepWord {pa : U256} {publicParam : PublicParam} {layer : Layer}
 
 /-- The end of chain `i`, from the position of its digit, is the end of the chain. -/
 theorem chainEnd_eq {pX pY pZ : U256} {publicParam : PublicParam} {layer : Layer} {e : UInt32}
-    (hX : HoldsPA pX publicParam (.chain layer e ⟨2, by decide⟩))
-    (hY : HoldsPA pY publicParam (.chain layer e ⟨1, by decide⟩))
-    (hZ : HoldsPA pZ publicParam (.chain layer e ⟨0, by decide⟩)) (i : Fin V)
+    (hX : KeyHolds (wordBytes pX) publicParam (.chain layer e ⟨2, by decide⟩))
+    (hY : KeyHolds (wordBytes pY) publicParam (.chain layer e ⟨1, by decide⟩))
+    (hZ : KeyHolds (wordBytes pZ) publicParam (.chain layer e ⟨0, by decide⟩)) (i : Fin V)
     (digit : Fin CHAIN_LENGTH)
     (value : Digest) :
-    chainEnd pX pY pZ i.val digit.val (digestBytes value) =
-      digestBytes (chain hashId publicParam layer e i digit (CHAIN_LENGTH - 1 - digit)
-        (by have := digit.isLt; omega) value).run := by
+    chainEnd pX pY pZ i.val digit.val (packBytes value.bytes) =
+      packBytes (chain hashId publicParam layer e i digit (CHAIN_LENGTH - 1 - digit)
+        (by have := digit.isLt; omega) value).run.bytes := by
   obtain ⟨k, hk⟩ := digit
   have hk4 : k < 4 := hk
   -- One step per position from the digit up, the step that leaves position 0 first.
   rcases k with _ | _ | _ | _ | k
   · show first16 (stepWord pX i (first16 (stepWord pY i
-      (first16 (stepWord pZ i (digestBytes value)))))) = _
+      (first16 (stepWord pZ i (packBytes value.bytes)))))) = _
     rw [first16_stepWord hZ, first16_stepWord hY, first16_stepWord hX]
     rfl
-  · show first16 (stepWord pX i (first16 (stepWord pY i (digestBytes value)))) = _
+  · show first16 (stepWord pX i (first16 (stepWord pY i (packBytes value.bytes)))) = _
     rw [first16_stepWord hY, first16_stepWord hX]
     rfl
-  · show first16 (stepWord pX i (digestBytes value)) = _
+  · show first16 (stepWord pX i (packBytes value.bytes)) = _
     rw [first16_stepWord hX]
     rfl
   · rfl
@@ -139,14 +136,14 @@ theorem chainEnd_eq {pX pY pZ : U256} {publicParam : PublicParam} {layer : Layer
 
 Each chain starts at its digit of the codeword `x`, from its value in the signature `y`. -/
 theorem chainEnds_eq {pX pY pZ d : U256} {publicParam : PublicParam} {layer : Layer}
-    {e : UInt32} (hX : HoldsPA pX publicParam (.chain layer e ⟨2, by decide⟩))
-    (hY : HoldsPA pY publicParam (.chain layer e ⟨1, by decide⟩))
-    (hZ : HoldsPA pZ publicParam (.chain layer e ⟨0, by decide⟩))
+    {e : UInt32} (hX : KeyHolds (wordBytes pX) publicParam (.chain layer e ⟨2, by decide⟩))
+    (hY : KeyHolds (wordBytes pY) publicParam (.chain layer e ⟨1, by decide⟩))
+    (hZ : KeyHolds (wordBytes pZ) publicParam (.chain layer e ⟨0, by decide⟩))
     {x : Vector (Fin CHAIN_LENGTH) V}
     (hd : ∀ i : Fin V, digitAt d (digitPos i.val) = (x[i]).val) {data : ByteArray} {o : Nat}
     {y : Vector Digest V}
     (hy : ∀ i : Fin V,
-      (⟨(bufferRead data (o + 16 * i.val) 16).toArray⟩ : ByteArray) = digestBytes y[i]) :
+      (⟨(bufferRead data (o + 16 * i.val) 16).toArray⟩ : ByteArray) = packBytes y[i].bytes) :
     (⟨(bufferRead (chainEnds pX pY pZ d data o 58) 0 (16 * 58)).toArray⟩ : ByteArray) =
       ⟨(lanesBytes (digestLanes (Vector.ofFn fun i : Fin V =>
         (chain hashId publicParam layer e i x[i] (CHAIN_LENGTH - 1 - x[i])
@@ -185,7 +182,7 @@ theorem chainEnds_eq {pX pY pZ d : U256} {publicParam : PublicParam} {layer : La
       rw [chainEnds, ih (by omega), bufferRead_of_le (by rw [Nat.zero_add, hlen n (by omega)]), List.drop_zero,
         List.take_of_length_le (by rw [hlen n (by omega)]), hdn, hyn, hc, EthLib.Base.byteArray_mk_append_mk, List.append_toArray,
         List.range_succ, List.map_append, List.flatten_append]
-      simp [g, hn', digestBytes]
+      simp [g, hn', packBytes]
       rfl
   rw [hends 58 (by omega), bufferRead_of_le (by rw [Nat.zero_add, hlen 58 (by omega)]), List.drop_zero,
     List.take_of_length_le (by rw [hlen 58 (by omega)]), lanesBytes_digestLanes]
@@ -202,9 +199,9 @@ theorem chainEnds_eq {pX pY pZ d : U256} {publicParam : PublicParam} {layer : La
 
 /-- The leaf of the code is the hash of the leaf of the chain ends. -/
 theorem first16_leaf {pL : U256} {publicParam : PublicParam} {layer : Layer} {e : UInt32}
-    (hL : HoldsPA pL publicParam (.leaf layer e)) (ends : Vector Digest V) :
+    (hL : KeyHolds (wordBytes pL) publicParam (.leaf layer e)) (ends : Vector Digest V) :
     first16 (keccak (wordBytes pL ++ ⟨(lanesBytes (digestLanes ends)).toArray⟩)) =
-      digestBytes (otsLeafHash hashId publicParam layer e ends).run := by
+      packBytes (otsLeafHash hashId publicParam layer e ends).run.bytes := by
   rw [show wordBytes pL = _ from hL, EthLib.Base.byteArray_mk_append_mk, List.append_toArray,
     ← EthLib.Cryptography.Hash.Keccak.lanesBytes_append, first16_keccak_lanes]
   rfl

@@ -4,9 +4,8 @@
 import argparse
 import re
 import sys
-from pathlib import Path
 
-MODULE = Path(__file__).resolve().parents[1] / "LeanXmssEvmVerifierProofs"
+from disasm import MODULE, disassemble, read_code
 
 # The verifier's chain blocks: 58 chains, 16 bytes each from 0x150, then the end of the last block.
 CHAINS = 58
@@ -161,41 +160,6 @@ end LeanXmssEvmVerifierProofs
 """
 
 
-def read_code(path: Path) -> bytes:
-    """The bytes of the code that a Lean file of the code holds as one hex literal."""
-    text = path.read_text()
-    size = int(re.search(r"def \w*CODE_SIZE : Nat := (\d+)", text).group(1))
-    number = int(re.search(r"def \w*CODE_NUMBER : Nat :=\n\s*0x([0-9a-f]+)", text).group(1), 16)
-    return number.to_bytes(size, "big")
-
-
-def opcode_name(byte: int) -> str:
-    """The name of an opcode, as far as the chain blocks need them."""
-    if byte == 0x5F:
-        return "PUSH0"
-    if 0x60 <= byte <= 0x7F:
-        return f"PUSH{byte - 0x5F}"
-    if 0x80 <= byte <= 0x8F:
-        return f"DUP{byte - 0x7F}"
-    if 0x90 <= byte <= 0x9F:
-        return f"SWAP{byte - 0x8F}"
-    names = {0x16: "AND", 0x20: "KECCAK256", 0x50: "POP", 0x51: "MLOAD", 0x52: "MSTORE",
-             0x56: "JUMP", 0x57: "JUMPI", 0x5B: "JUMPDEST"}
-    return names.get(byte, f"OP{byte:02x}")
-
-
-def disassemble(code: bytes) -> list[tuple[int, str, str | None]]:
-    """Each instruction: its offset, its name and its push data in hex."""
-    out, pc = [], 0
-    while pc < len(code):
-        name = opcode_name(code[pc])
-        width = int(name[4:]) if name.startswith("PUSH") and name != "PUSH0" else 0
-        data = code[pc + 1 : pc + 1 + width].hex() if width else None
-        out.append((pc, name, data))
-        pc += 1 + width
-    return out
-
-
 def block_starts(ins: list[tuple[int, str, str | None]]) -> list[int]:
     """The first byte of each chain block: the load of its value from the signature."""
     starts = []
@@ -258,8 +222,9 @@ theorem chain{i}_{digit} {fork_hyp}{{t d ret pX pY pZ pL : U256}} {{rest : List 
 {script}  refine Triple.of_imp fun _ h => ?_
   simp only [chainEnd, first16, stepWord, indexWord, Nat.reduceMul, Nat.reducePow]
   exact addEnd h (by evm_fact) (by evm_fact) (by evm_size)
-    (by (try simp (disch := decide) only [memoryReadBytes_bufferRead, memoryReadBytes_wordBytes,
-      Nat.add_zero]) <;> rfl) rfl
+    (by (try simp (disch := first | (rw [size_wordBytes]; decide) | decide) only
+      [memoryReadBytes_bufferRead, memoryReadBytes_eq_bufferRead (wordBytes _), Nat.add_zero])
+      <;> rfl) rfl
     (by evm_fact) (by evm_fact) (by evm_fact) (by evm_fact)
 """
 

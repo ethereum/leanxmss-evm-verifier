@@ -14,7 +14,7 @@ Its digits are the first half of the digest of leanXMSS, as a big-endian number.
 
 namespace LeanXmssEvmVerifierProofs
 
-open EthLib.Base (U256)
+open EthLib.Base (U256 packBytes)
 open EthLib.Execution.Evm
 open EthLib.Cryptography.Xmss
 open EthLib.Base.ByteOrder (ofBE toLE)
@@ -94,7 +94,7 @@ theorem bottomDigits_eq {pk msg offset : U256} {data : ByteArray} {key : PublicK
     have htag : (0xc0000000000000000#256 : U256).toNat = 12 * 2 ^ 64 := rfl
     rw [ofBE_encode_msg, bitwiseOr, toNat_or_of_lt (leafWord_toNat hsig) (by decide), hhi, htag]
     omega
-  have hpa := holdsPA_of_encode hpk hc
+  have hpa := keyHolds_of_encode hpk hc
   rw [bottomDigits, hhead, show wordBytes _ = _ from hpa, hadd, ← hrho]
   conv_lhs => rw [wordBytes_eq_lanesBytes msg]
   rw [EthLib.Base.byteArray_mk_append_mk, List.append_toArray, EthLib.Base.byteArray_mk_append_mk, List.append_toArray, ← EthLib.Cryptography.Hash.Keccak.lanesBytes_append,
@@ -106,7 +106,7 @@ theorem topDigits_eq {pk R offset : U256} {data : ByteArray} {key : PublicKey}
     {sig : Signature} {bottomRoot : Digest} (hpk : decodePublicKey (wordBytes pk) = .ok key)
     (hsig : decodeSignature ⟨(bufferRead data offset.toNat 2404).toArray⟩ = .ok sig)
     (hoff : offset.toNat + 2404 < 2 ^ 256)
-    (hroot : (⟨(bufferRead (wordBytes R) 0 16).toArray⟩ : ByteArray) = digestBytes bottomRoot) :
+    (hroot : (⟨(bufferRead (wordBytes R) 0 16).toArray⟩ : ByteArray) = packBytes bottomRoot.bytes) :
     topDigits data offset R
         (topKey (bitwiseShl 128#256 pk) (topIndex (leafWord data offset.toNat))) =
       digitWord (messageDigest hashId key.publicParam .top
@@ -128,7 +128,7 @@ theorem topDigits_eq {pk R offset : U256} {data : ByteArray} {key : PublicKey}
     omega
   have hr : (⟨(bufferRead (wordBytes R) 0 16).toArray⟩ : ByteArray) =
       ⟨(lanesBytes bottomRoot.toArray).toArray⟩ := by
-    rw [hroot, EthLib.Cryptography.Hash.Keccak.lanesBytes_lanes2, digestBytes,
+    rw [hroot, EthLib.Cryptography.Hash.Keccak.lanesBytes_lanes2, packBytes,
       Vector.toArray_toList]
   -- The head is the key word shifted up, then the address of the message digest.
   have hhead : digestHead (topKey (bitwiseShl 128#256 pk) (topIndex (leafWord data offset.toNat))) =
@@ -158,7 +158,7 @@ theorem topDigits_eq {pk R offset : U256} {data : ByteArray} {key : PublicKey}
     rw [ofBE_encode_msg, bitwiseOr, toNat_or_of_lt hindex (by rw [htag]; decide), hhi, htree,
       htag]
     omega
-  have hpa := holdsPA_of_encode hpk hc
+  have hpa := keyHolds_of_encode hpk hc
   rw [topDigits, hhead, show wordBytes _ = _ from hpa, hadd, ← hrho, hr, EthLib.Base.byteArray_mk_append_mk, List.append_toArray,
     EthLib.Base.byteArray_mk_append_mk, List.append_toArray, ← EthLib.Cryptography.Hash.Keccak.lanesBytes_append,
     ← EthLib.Cryptography.Hash.Keccak.lanesBytes_append, shr_keccak_lanes]

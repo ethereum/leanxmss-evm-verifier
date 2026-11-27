@@ -83,10 +83,10 @@ theorem ofBE_encode (address : Address) :
   exact ofBE_toLE_lane hlo hhi (by omega)
 
 /-- The word `P | A` of an address, as the key word shifted up, or the number of the address. -/
-theorem holdsPA_of_encode {pkWord c : U256} {pk : PublicKey}
+theorem keyHolds_of_encode {pkWord c : U256} {pk : PublicKey}
     (hpk : decodePublicKey (wordBytes pkWord) = .ok pk) {address : Address}
     (hc : c.toNat = ofBE address.encode.bytes.toList) :
-    HoldsPA (bitwiseOr (bitwiseShl 128#256 pkWord) c) pk.publicParam address := by
+    KeyHolds (wordBytes (bitwiseOr (bitwiseShl 128#256 pkWord) c)) pk.publicParam address := by
   have h := wordBytes_paWord_of_decode hpk address hc
   rw [paWord, BitVec.ofNat_toNat, BitVec.setWidth_eq] at h
   exact h
