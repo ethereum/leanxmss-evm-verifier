@@ -45,3 +45,12 @@ jobs:
         with:
           name: bytecode
           path: contracts/dist/
+
+  # The EthLib cases must be the ones of the commit in COMMIT, unchanged and complete.
+  vectors:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: EthLib vectors
+        run: xmss/sync-vectors.sh --check
