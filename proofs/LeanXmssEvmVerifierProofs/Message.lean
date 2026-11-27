@@ -21,15 +21,6 @@ open EthLib.Execution.State (TransactionState)
 variable {fork : Fork} {message : Message fork} {gas : Nat} {state : TransactionState}
   {substate : Substate} {returnData : ByteArray}
 
-/-- A frame knows the bytes of two adjacent facts as one fact, which a step can then use. -/
-theorem Known.join_step {code : ByteArray} {pc : Nat} {stack : List U256} {size : Nat}
-    {facts : List (Nat × ByteArray)} {start mid : Nat} {first second : ByteArray}
-    (h₁ : (start, first) ∈ facts) (h₂ : (mid, second) ∈ facts) (hmid : start + first.size = mid) :
-    Hoare fork (Known code message pc stack size facts gas state substate returnData)
-      (Known code message pc stack size ((start, first ++ second) :: facts) gas state substate
-        returnData) :=
-  Triple.of_imp fun _ h => h.join h₁ (hmid ▸ h₂)
-
 /-- The memory after the free memory pointer is set holds 0x80 at 0x40. -/
 theorem known_free {pc : Nat} {stack : List U256} {evm : Evm fork Nat}
     (h : At CODE message pc stack MEMORY_FREE gas state substate returnData evm) :

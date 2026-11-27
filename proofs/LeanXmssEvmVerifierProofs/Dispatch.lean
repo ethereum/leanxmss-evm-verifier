@@ -26,28 +26,17 @@ variable {fork : Fork} {message : Message fork} {gas : Nat} {state : Transaction
 
 open Lean.Parser.Tactic
 
-/-- Evaluates the words of the stack that are numbers, with the rewrite rules `ls`. -/
-syntax "stack_eval" " [" simpLemma,* "]" : tactic
-
-macro_rules
-  | `(tactic| stack_eval [$ls,*]) => `(tactic| try simp only [add, sub, mul, lessThan,
-      greaterThan, equal, isZero, bitwiseAnd, bitwiseOr, bitwiseXor, BitVec.reduceAdd,
-      BitVec.reduceSub, BitVec.reduceMul, BitVec.reduceAnd, BitVec.reduceOr, BitVec.reduceXOr,
-      BitVec.reduceToNat, BitVec.reduceEq, BitVec.reduceOfNat, Nat.reduceLT, Nat.reduceGT,
-      Nat.reduceAdd, ↓reduceIte, gt_iff_lt, $ls,*])
-
-/-- One step of the code, then the words of the stack that are numbers are evaluated.
-
-The rewrite rules `ls` are used in that evaluation too. -/
+/-- One step of this code, then the rewrite rules `ls` on the frame after it. -/
 syntax "pop_step" (" [" simpLemma,* "]")? : tactic
 
 macro_rules
   | `(tactic| pop_step) => `(tactic| pop_step [])
   | `(tactic| pop_step [$ls,*]) => `(tactic| ((evm_step [CODE, CODE_NUMBER, CODE_SIZE]) <;>
-      (stack_eval [$ls,*])))
+      (try simp only [$ls,*])))
 
-/-- One step of the code over a frame that knows ranges of memory, then the words of the stack
-that are numbers are evaluated, with the rewrite rules `ls`. -/
+/-- One step of this code over a frame that knows ranges of memory, then the rewrite rules `ls`.
+
+MLOAD of the first word of a longer range takes the rule of the generic lemmas. -/
 syntax "pop_stepK" (" [" simpLemma,* "]")? : tactic
 
 macro_rules
@@ -62,7 +51,7 @@ macro_rules
          case h32 => evm_size
          case gas => evm_gas
          evm_tidyK)) <;>
-      (stack_eval [$ls,*])))
+      (try simp only [$ls,*])))
 
 /-- The memory after the free memory pointer is set: 96 bytes, with 0x80 at 0x40. -/
 def MEMORY_FREE : ByteArray :=
@@ -242,7 +231,7 @@ theorem badSize_14084 (hfork : .fusaka ≤ fork) (hne :
         message.data.size, 0] MEMORY_FREE gas state substate returnData)
       (At CODE message 52 [0, 0, BitVec.ofNat 256 message.data.size, 0] MEMORY_FREE (gas - 36)
         state substate returnData) := by
-  iterate 10 pop_step [hne]
+  iterate 10 pop_step [equal, hne, ↓reduceIte]
   exact reshape rfl rfl rfl
 
 /-- Calldata of another size than 2484 bytes reverts with no output, and keeps the state. -/
