@@ -224,4 +224,35 @@ theorem fromSize_137 (hgas : 12 ≤ gas) :
   iterate 4 pop_step []
   exact reshape rfl rfl rfl
 
+/-! ## Calldata of another size -/
+
+/-- From byte 5, 50 steps. -/
+theorem badSize_5 (hfork : .fusaka ≤ fork) (hvalue : isZero message.value ≠ 0)
+    (hgas : 168 ≤ gas) :
+    Hoare fork (At CODE message 5 [] MEMORY_FREE gas state substate returnData)
+      (At CODE message 14084 [2404#256, 80#256, 43#256, 2484#256, BitVec.ofNat 256
+        message.data.size, 0] MEMORY_FREE (gas - 168) state substate returnData) := by
+  iterate 50 pop_step
+  exact reshape rfl rfl rfl
+
+/-- From byte 14084, 10 steps. -/
+theorem badSize_14084 (hfork : .fusaka ≤ fork) (hne :
+    BitVec.ofNat 256 message.data.size ≠ 2484#256) (hgas : 36 ≤ gas) :
+    Hoare fork (At CODE message 14084 [2404#256, 80#256, 43#256, 2484#256, BitVec.ofNat 256
+        message.data.size, 0] MEMORY_FREE gas state substate returnData)
+      (At CODE message 52 [0, 0, BitVec.ofNat 256 message.data.size, 0] MEMORY_FREE (gas - 36)
+        state substate returnData) := by
+  iterate 10 pop_step [hne]
+  exact reshape rfl rfl rfl
+
+/-- Calldata of another size than 2484 bytes reverts with no output, and keeps the state. -/
+theorem badSize (hfork : .fusaka ≤ fork) (hvalue : isZero message.value ≠ 0)
+    (hne : BitVec.ofNat 256 message.data.size ≠ 2484#256) (hgas : 204 ≤ gas) :
+    Spec fork (At CODE message 5 [] MEMORY_FREE gas state substate returnData)
+      (fun evm => Answer state none evm ∧ evm.substate = substate) := by
+  refine Spec.seq (badSize_5 hfork hvalue (by omega)) ?_
+  refine Spec.seq (badSize_14084 hfork hne (by omega)) ?_
+  exact revertNone (Nat.le_trans (by decide) hfork) (by evm_code [CODE, CODE_NUMBER, CODE_SIZE])
+    (by evm_code [CODE, CODE_NUMBER, CODE_SIZE])
+
 end LeanXmssEvmVerifierProofs

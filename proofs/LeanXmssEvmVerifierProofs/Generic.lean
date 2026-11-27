@@ -42,6 +42,20 @@ theorem revertEmpty' {stack : List U256} (hfork : .shapella ≤ fork) (hlt : pc 
   rw [hout, extendMemory_of_length_eq_zero]
   rfl
 
+/-- From Byzantium, REVERT of no bytes reverts with no output, from any memory.
+
+The run keeps the state and the substate. -/
+theorem revertNone {rest : List U256} (hfork : .byzantium ≤ fork) (hlt : pc < code.size)
+    (hbyte : code[pc] = 0xfd) :
+    Spec fork (At code message pc (0 :: 0 :: rest) memory gas state substate returnData)
+      (fun evm => Answer state none evm ∧ evm.substate = substate) := by
+  refine Spec.consequence (revert hfork hlt hbyte
+    (by rw [extendMemory_of_length_eq_zero]; exact Nat.zero_le _)) (fun _ h => h) ?_
+  rintro evm ⟨-, herr, hout, -, hst, hss⟩
+  refine ⟨⟨hst ▸ ReadsAs.refl _, by simpa using herr, ?_⟩, hss⟩
+  rw [hout, extendMemory_of_length_eq_zero]
+  rfl
+
 /-- The 32 bytes of the word of the first 32 bytes of a buffer are those bytes. -/
 theorem wordBytes_loadWord {b : ByteArray} (h : 32 ≤ b.size) :
     wordBytes (loadWord b 0 32) = memoryReadBytes b 0 32 := by
