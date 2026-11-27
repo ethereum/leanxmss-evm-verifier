@@ -1,5 +1,6 @@
 module
 
+public import LeanXmssEvmVerifierProofs.Addresses
 public import LeanXmssEvmVerifierProofs.Bridge
 public import LeanXmssEvmVerifierProofs.ChainBlocks0
 public import LeanXmssEvmVerifierProofs.ChainBlocks1

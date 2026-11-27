@@ -1,5 +1,6 @@
 module
 
+public import LeanXmssEvmVerifierProofs.Addresses
 public import LeanXmssEvmVerifierProofs.Codeword
 
 /-!
@@ -21,11 +22,6 @@ open EthLib.Execution.State (TransactionState)
 
 variable {fork : Fork} {message : Message fork} {state : TransactionState} {substate : Substate}
   {returnData : ByteArray}
-
-/-- The leaf index of a signature: its first four bytes, as bytes 16 to 19 of a word. -/
-def sigIndex (data : ByteArray) (offset : U256) : U256 :=
-  bitwiseAnd (bitwiseShr 128#256 (loadWord data offset.toNat 32))
-    0xffffffff000000000000000000000000#256
 
 /-- The key word of the bottom layer: the low half of the key, then the leaf index. -/
 def keyIndex (pk index : U256) : U256 :=
@@ -144,15 +140,15 @@ theorem verifyEntry (hfork : .fusaka ≤ fork) {offset msg pk ret : U256} {rest 
     Hoare fork (Known CODE message 0x132 (2404#256 :: offset :: msg :: pk :: ret :: rest) 288
         [(64, wordBytes 0x80)] gas state substate returnData)
       (fun evm => ∃ g, k ≤ g ∧ Known CODE message 0x148
-        (bottomDigits message.data offset msg (keyIndex pk (sigIndex message.data offset)) ::
+        (bottomDigits message.data offset msg (keyIndex pk (leafWord message.data offset.toNat)) ::
           0x35ff ::
-          bottomDigits message.data offset msg (keyIndex pk (sigIndex message.data offset)) ::
-          keyIndex pk (sigIndex message.data offset) :: sigIndex message.data offset ::
+          bottomDigits message.data offset msg (keyIndex pk (leafWord message.data offset.toNat)) ::
+          keyIndex pk (leafWord message.data offset.toNat) :: leafWord message.data offset.toNat ::
           bitwiseShl 128#256 pk :: offset :: 128 :: 128 :: 0 :: 2404#256 :: offset :: msg :: pk ::
           ret :: rest) 1536
         [(64, ⟨(bufferRead message.data (add offset 4#256).toNat 32).toArray⟩),
           (32, wordBytes msg),
-          (0, wordBytes (digestHead (keyIndex pk (sigIndex message.data offset)))),
+          (0, wordBytes (digestHead (keyIndex pk (leafWord message.data offset.toNat)))),
           (320, ⟨(bufferRead message.data (add offset 4#256).toNat 1200).toArray⟩)]
         g state substate returnData evm) := by
   lx_stepC
