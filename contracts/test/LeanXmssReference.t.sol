@@ -13,9 +13,9 @@ import {LeanXmssVectors} from "./helpers/LeanXmssVectors.sol";
 /// the chain values and the siblings are random, and the public key has the root the reference
 /// reaches. What costs is the randomizers. A layer's digest has to be a codeword, about one
 /// digest in a million is one, and so finding a randomizer takes about 150M gas. The tests on
-/// fixed cases have the randomizers they found before, as the counters in `validCounters` and
-/// `closeCounters`. The fuzz tests search for theirs, so they run twice by default and 250 times
-/// with `FOUNDRY_PROFILE=deep`.
+/// fixed cases have the randomizers they found before, as the counters in `validCounters`,
+/// `closeCounters` and `armCounters`. The fuzz tests search for theirs, so they run twice by
+/// default and 250 times with `FOUNDRY_PROFILE=deep`.
 contract LeanXmssReferenceTest is Test {
     uint256 internal constant SIGNATURE_LENGTH = 2404;
     uint256 internal constant TOP_LAYER = 1204;
@@ -24,6 +24,8 @@ contract LeanXmssReferenceTest is Test {
     uint256 internal constant ANY_BIT = 0x10000;
     /// The leaf index of the odd cases of `closeCase`.
     uint32 internal constant SOME_LEAF = 0x9e3779b9;
+    /// The salt of the signature of `test_VerifiesEveryChainArm`.
+    uint256 internal constant ARMS_SALT = 22;
 
     /// How many randomizers a search tries. A try takes about 160 gas, so the two searches of a
     /// signature take at most 800M of the 1,073M a test has. One search in ten gives up.
@@ -33,7 +35,7 @@ contract LeanXmssReferenceTest is Test {
     /// address word `first`, with the randomizers from `from` up to `to`. `past` is what it has
     /// in the twelve bits past its 58th digit, read as a big-endian number, or `ANY_BIT`. Its 64
     /// digits sum to `sum`, or to anything else when `equal` is false. With `past` zero and a sum
-    /// of 106 it is a codeword.
+    /// of 106 it is a codeword. Its bits under `mask` are those of `digits`, which `pin` writes.
     struct Search {
         bytes32 first;
         bytes32 signed;
@@ -43,6 +45,8 @@ contract LeanXmssReferenceTest is Test {
         bool equal;
         uint256 from;
         uint256 to;
+        uint256 mask;
+        uint256 digits;
     }
 
     /// A digest that isn't a codeword and is close to one, in the layer `bottom` says, of a
@@ -92,6 +96,16 @@ contract LeanXmssReferenceTest is Test {
             assertEq(used[1], counters[i][1]);
             check(key, message, sig, indices[i]);
         }
+    }
+
+    /// Both verifiers accept a signature at leaf zero whose digits take the arms of a chain that
+    /// the other fixed cases leave out: chain 22 at digit 1 in both layers, chains 9 and 27 at
+    /// digit 0 in the bottom one, and chain 19 at digit 0 in the top one.
+    function test_VerifiesEveryChainArm() public view {
+        (uint32[2] memory used, bytes32 key, bytes32 message, bytes memory sig) =
+            signatureAt(0, ARMS_SALT, armPins(), armCounters());
+        assertEq(used[1], armCounters()[1]);
+        check(key, message, sig, ARMS_SALT);
     }
 
     /// forge-config: default.fuzz.runs = 2
@@ -292,18 +306,38 @@ contract LeanXmssReferenceTest is Test {
         view
         returns (uint32[2] memory used, bytes32 key, bytes32 message, bytes memory sig)
     {
+        uint256[2][2] memory none;
+        return signatureAt(leaf, salt, none, counters);
+    }
+
+    /// The same, with the digits of each layer's digest pinned: `pins[layer]` is the mask and the
+    /// digits of `Search`.
+    function signatureAt(
+        uint32 leaf,
+        uint256 salt,
+        uint256[2][2] memory pins,
+        uint32[2] memory counters
+    )
+        internal
+        view
+        returns (uint32[2] memory used, bytes32 key, bytes32 message, bytes memory sig)
+    {
         sig = new bytes(SIGNATURE_LENGTH);
         fill(sig, 0, SIGNATURE_LENGTH, bytes32(salt));
         writeIndex(sig, leaf);
         key = keccak256(abi.encode(salt, "key"));
         message = keccak256(abi.encode(salt, "message"));
 
-        used[0] = find(digestOf(key, 0, leaf, message, 32), counters[0]);
+        Search memory s = digestOf(key, 0, leaf, message, 32);
+        (s.mask, s.digits) = (pins[0][0], pins[0][1]);
+        used[0] = find(s, counters[0]);
         if (used[0] == 0) return (used, key, message, sig);
         write16(sig, 4, bytes16(uint128(used[0])));
         (bool valid, bytes16 bottom) = referenceHarness.bottomRoot(key, message, sig);
         assertTrue(valid);
-        used[1] = find(digestOf(key, 1, leaf >> 16, bottom, 16), counters[1]);
+        s = digestOf(key, 1, leaf >> 16, bottom, 16);
+        (s.mask, s.digits) = (pins[1][0], pins[1][1]);
+        used[1] = find(s, counters[1]);
         if (used[1] == 0) return (used, key, message, sig);
         write16(sig, TOP_LAYER, bytes16(uint128(used[1])));
         bytes16 top;
@@ -348,6 +382,15 @@ contract LeanXmssReferenceTest is Test {
         (s.signed, s.len, s.sum, s.equal) = (signed, len, 106, true);
     }
 
+    /// Adds to `p` the mask and the digits that pin chain `chain` of a digest to `digit`. The
+    /// digest is read as a big-endian number, as `search` does, so the digit is at bit
+    /// `120 - 8 * (chain / 4) + 2 * (chain % 4)`.
+    function pin(uint256[2] memory p, uint256 chain, uint256 digit) internal pure {
+        uint256 bit = 120 - 8 * (chain / 4) + 2 * (chain % 4);
+        p[0] |= 3 << bit;
+        p[1] |= digit << bit;
+    }
+
     /// The counter of a randomizer that gives the digest `s` asks for. It is `known` when that
     /// isn't zero, after checking that it does. Otherwise it's the first one found, or zero.
     function find(Search memory s, uint32 known) internal view returns (uint32) {
@@ -384,6 +427,7 @@ contract LeanXmssReferenceTest is Test {
                 mstore(slot, shl(128, i))
                 let d := shr(128, keccak256(mem, size))
                 if xor(and(d, mask), past) { continue }
+                if xor(and(d, mload(add(s, 0x100))), mload(add(s, 0x120))) { continue }
                 if any { if iszero(and(d, 0xf0ff)) { continue } }
                 let total := 0
                 for { let k := 0 } lt(k, 128) { k := add(k, 2) } {
@@ -421,8 +465,8 @@ contract LeanXmssReferenceTest is Test {
         ];
     }
 
-    /// Prints `validCounters` and `closeCounters`, after a change to how the signatures are
-    /// built. It takes a minute and more gas than a test has:
+    /// Prints `validCounters`, `closeCounters` and `armCounters`, after a change to how the
+    /// signatures are built. It takes a minute and more gas than a test has:
     ///   LEANXMSS_COUNTERS=true FOUNDRY_GAS_LIMIT=100000000000 \
     ///     forge test --match-test test_PrintCounters -vv
     function test_PrintCounters() public {
@@ -436,6 +480,8 @@ contract LeanXmssReferenceTest is Test {
         for (uint256 i; i < 32; i++) {
             emit log_string(row("close", checkClose(closeCase(i), i, [uint32(0), 0])));
         }
+        (uint32[2] memory arms,,,) = signatureAt(0, ARMS_SALT, armPins(), [uint32(0), 0]);
+        emit log_string(row("arms", arms));
     }
 
     function row(string memory table, uint32[2] memory used) internal pure returns (string memory) {
@@ -466,6 +512,20 @@ contract LeanXmssReferenceTest is Test {
             [uint32(985726), 910735],
             [uint32(6364663), 1011631]
         ];
+    }
+
+    /// The digits that `test_VerifiesEveryChainArm` pins in the bottom and in the top layer.
+    function armPins() internal pure returns (uint256[2][2] memory pins) {
+        pin(pins[0], 22, 1);
+        pin(pins[0], 9, 0);
+        pin(pins[0], 27, 0);
+        pin(pins[1], 22, 1);
+        pin(pins[1], 19, 0);
+    }
+
+    /// The counters of the signature of `test_VerifiesEveryChainArm`.
+    function armCounters() internal pure returns (uint32[2] memory) {
+        return [uint32(94001324), 9926963];
     }
 
     /// The same for each case of `test_RejectsADigestThatIsNotACodeword`.
