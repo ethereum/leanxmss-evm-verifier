@@ -54,3 +54,42 @@ jobs:
 
       - name: EthLib vectors
         run: xmss/sync-vectors.sh --check
+
+  proofs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.9.0
+
+      - name: Build the contracts
+        working-directory: contracts
+        run: forge build --skip test --skip script
+
+      # The proofs are about the bytecode in proofs/, so it must be what forge builds.
+      - name: Proved bytecode
+        run: python3 proofs/scripts/generate-code.py --check
+
+      - name: Install elan
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh \
+            | sh -s -- -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      # EthLib and Mathlib take long to build, so their builds are kept per pinned commit.
+      - uses: actions/cache@v4
+        with:
+          path: proofs/.lake/packages
+          key: lake-${{ hashFiles('proofs/lake-manifest.json', 'proofs/lean-toolchain') }}
+
+      - name: Mathlib cache
+        working-directory: proofs
+        run: lake exe cache get
+
+      - name: Proofs
+        working-directory: proofs
+        run: lake build --wfail
