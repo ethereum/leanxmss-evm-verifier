@@ -52,7 +52,16 @@ syntax "pop_stepK" (" [" simpLemma,* "]")? : tactic
 
 macro_rules
   | `(tactic| pop_stepK) => `(tactic| pop_stepK [])
-  | `(tactic| pop_stepK [$ls,*]) => `(tactic| ((evm_stepK [CODE, CODE_NUMBER, CODE_SIZE]) <;>
+  | `(tactic| pop_stepK [$ls,*]) => `(tactic| ((first
+      | evm_stepK [CODE, CODE_NUMBER, CODE_SIZE]
+      -- MLOAD of the first 32 bytes of a longer fact.
+      | (refine' Triple.seq (mload_known_prefix ?lt ?op ?fact ?h32 ?gas) ?next
+         case lt => evm_code [CODE, CODE_NUMBER, CODE_SIZE]
+         case op => evm_code [CODE, CODE_NUMBER, CODE_SIZE]
+         case fact => evm_fact
+         case h32 => evm_size
+         case gas => evm_gas
+         evm_tidyK)) <;>
       (stack_eval [$ls,*])))
 
 /-- The memory after the free memory pointer is set: 96 bytes, with 0x80 at 0x40. -/

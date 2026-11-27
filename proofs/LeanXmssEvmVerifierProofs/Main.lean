@@ -50,7 +50,10 @@ It holds for every caller, every value, every calldata, and a static call as wel
 It holds whatever code the message names: the frame runs the code it is given. -/
 theorem answers {fork : Fork} (hfork : .fusaka ≤ fork) {message : Message fork} {gas : Nat}
     {state : TransactionState} {substate : Substate} {returnData : ByteArray}
-    (hgas : GAS_BOUND ≤ gas) :
+    -- CALLDATASIZE pushes the size modulo `2 ^ 256`, so a larger size would read as a smaller one.
+    --
+    -- No chain carries that much calldata: its price in gas exceeds any block.
+    (hdata : message.data.size < 2 ^ 256) (hgas : GAS_BOUND ≤ gas) :
     Spec fork (At CODE message 0 [] .empty gas state substate returnData) fun evm =>
       -- The frame stops with the word 1, or reverts with no output, and keeps the state.
       Answer state (popAnswer message) evm ∧
