@@ -1,0 +1,17 @@
+# The harness that the proofs of the library are about. It is compiled only for the proofs, with
+# the compiler settings of contracts/foundry.toml.
+[profile.default]
+src = "src"
+out = "out"
+libs = []
+allow_paths = ["../../contracts/src"]
+remappings = ["leanxmss/=../../contracts/src/"]
+solc_version = "0.8.38"
+evm_version = "osaka"
+optimizer = true
+optimizer_runs = 1_000_000
+bytecode_hash = "none"
+cbor_metadata = false
+
+[fmt]
+line_length = 100

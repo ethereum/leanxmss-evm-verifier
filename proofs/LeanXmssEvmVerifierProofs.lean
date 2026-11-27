@@ -1,4 +1,5 @@
 module
 
 public import LeanXmssEvmVerifierProofs.Bridge
+public import LeanXmssEvmVerifierProofs.Harness
 public import LeanXmssEvmVerifierProofs.Main

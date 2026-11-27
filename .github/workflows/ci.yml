@@ -70,7 +70,12 @@ jobs:
         working-directory: contracts
         run: forge build --skip test --skip script
 
-      # The proofs are about the bytecode in proofs/, so it must be what forge builds.
+      # The harness calls the verifier for the proofs of the library; it is never deployed.
+      - name: Build the harness
+        working-directory: proofs/harness
+        run: forge build
+
+      # The proofs are about the bytecodes in proofs/, so they must be what forge builds.
       - name: Proved bytecode
         run: python3 proofs/scripts/generate-code.py --check
 
