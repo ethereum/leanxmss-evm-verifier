@@ -10,5 +10,8 @@ public import LeanXmssEvmVerifierProofs.ChainBlocks5
 public import LeanXmssEvmVerifierProofs.ChainBlocks6
 public import LeanXmssEvmVerifierProofs.ChainBlocks7
 public import LeanXmssEvmVerifierProofs.ChainDigits
+public import LeanXmssEvmVerifierProofs.ChainEnds
+public import LeanXmssEvmVerifierProofs.ChainSteps
+public import LeanXmssEvmVerifierProofs.Codeword
 public import LeanXmssEvmVerifierProofs.Harness
 public import LeanXmssEvmVerifierProofs.Main
