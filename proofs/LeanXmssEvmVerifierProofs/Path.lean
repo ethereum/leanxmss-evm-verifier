@@ -90,8 +90,8 @@ syntax "lx_jumpRet " term : tactic
 
 macro_rules
   | `(tactic| lx_jumpRet $h) => `(tactic|
-      ((refine Triple.seq (Known.of_at fun _ => jump (by evm_code [CODE, CODE_NUMBER, CODE_SIZE])
-          (by evm_code [CODE, CODE_NUMBER, CODE_SIZE]) (by evm_gas) $h) ?_) <;> evm_tidyK))
+      ((refine Triple.seq (Known.of_at fun _ => jump (by lx_codeR)
+          (by lx_codeR) (by evm_gas) $h) ?_) <;> evm_tidyK))
 
 /-! ## The bytes after the siblings -/
 

@@ -18,6 +18,9 @@ NAMES = {
 
 Instruction = tuple[int, str, str | None]
 
+# The first byte of the verifier in the code of PQProofOfPossession.
+ENTRY = 0x132
+
 
 def read_code(path: Path = MODULE / "Code.lean") -> bytes:
     """The bytes of the code that a Lean file of the code holds as one hex literal."""
@@ -50,3 +53,45 @@ def disassemble(code: bytes) -> list[Instruction]:
         out.append((pc, name, data))
         pc += 1 + width
     return out
+
+
+def _at_base(m: re.Match) -> str:
+    """A frame at a literal position of the verifier, restated at its offset from `base`."""
+    lit = m.group(2)
+    rel = (int(lit, 16) if lit.startswith("0x") else int(lit)) - ENTRY
+    assert rel >= 0, lit
+    pc = "base" if rel == 0 else f"(base + {rel:#x})" if lit.startswith("0x") else f"(base + {rel})"
+    return f"{m.group(1)} code message {pc}"
+
+
+def relocate(text: str) -> str:
+    """Restate lemmas written at the positions of CODE at any code that holds the verifier.
+
+    The code holds it from `base`, so a position `p` becomes `base + (p - ENTRY)`.
+
+    Each theorem whose statement names the code takes it as an instance `hR`.
+    """
+    text = re.sub(r"\b(Known|At) CODE message (0x[0-9a-fA-F]+|\d+)\b", _at_base, text)
+    text = re.sub(r"\b(Known|At) CODE message \(chainPc ", r"\1 code message (base + chainPc ", text)
+    text = re.sub(r"\b(Known|At) CODE message", r"\1 code message", text)
+    text = text.replace("chainFrame message", "chainFrame code base message")
+    text = text.replace("validJumpDestinations CODE", "validJumpDestinations code")
+    text = text.replace("lx_stepC", "lx_stepR")
+    text = text.replace("evm_code [CODE, CODE_NUMBER, CODE_SIZE]", "lx_codeR")
+    text = text.replace("evm_dest [CODE, CODE_NUMBER, CODE_SIZE]", "lx_destR")
+    out, pos = [], 0
+    for m in re.finditer(r"^(?:private )?theorem \S+", text, re.M):
+        found = re.compile(r":=\s|\n\n").search(text, m.end())
+        stop = found.start() if found else len(text)
+        statement = text[m.end() : stop]
+        out.append(text[pos : m.end()])
+        if re.search(r"\bcode\b", statement) and "VerifierCode code base" not in statement:
+            out.append(" [hR : VerifierCode code base]")
+        pos = m.end()
+    out.append(text[pos:])
+    text = "".join(out)
+    if "variable {code : ByteArray}" not in text and re.search(r"\bcode\b", text):
+        text = text.replace("variable {fork : Fork}",
+                            "variable {code : ByteArray} {base : Nat}\n\nvariable {fork : Fork}", 1)
+    return text
+

@@ -28,12 +28,13 @@ def threes (d : U256) : U256 :=
 def digitPos (i : Nat) : Nat :=
   120 - 8 * (i / 4) + 2 * (i % 4)
 
-/-- The first byte of each of the 58 chain blocks, then the end of the last one. -/
+/-- The first byte of each of the 58 chain blocks, then the end of the last one, counted from
+the first byte of the verifier. -/
 def CHAIN_PCS : List Nat :=
-  [465, 583, 795, 1007, 1219, 1428, 1637, 1846, 2055, 2261, 2467, 2673, 2879, 3082, 3285, 3488,
-    3691, 3891, 4091, 4291, 4491, 4688, 4885, 5082, 5279, 5473, 5667, 5861, 6055, 6246, 6437,
-    6628, 6819, 7007, 7195, 7383, 7571, 7756, 7941, 8126, 8311, 8493, 8675, 8857, 9039, 9218,
-    9397, 9576, 9755, 9931, 10107, 10283, 10459, 10632, 10805, 10978, 11151, 11321, 11491]
+  [159, 277, 489, 701, 913, 1122, 1331, 1540, 1749, 1955, 2161, 2367, 2573, 2776, 2979, 3182, 3385,
+    3585, 3785, 3985, 4185, 4382, 4579, 4776, 4973, 5167, 5361, 5555, 5749, 5940, 6131, 6322, 6513,
+    6701, 6889, 7077, 7265, 7450, 7635, 7820, 8005, 8187, 8369, 8551, 8733, 8912, 9091, 9270, 9449,
+    9625, 9801, 9977, 10153, 10326, 10499, 10672, 10845, 11015, 11185]
 
 /-- The first byte of chain block `i`. -/
 def chainPc (i : Nat) : Nat :=
@@ -61,15 +62,18 @@ def chainFacts (pX pY pZ pL : U256) (E data : ByteArray) (i o : Nat) :
     (0x120, wordBytes pL ++ ⟨(bufferRead E 0 (16 * i)).toArray⟩),
     (0x150 + 16 * i, ⟨(bufferRead data o (1184 - 16 * i)).toArray⟩)]
 
+variable {code : ByteArray} {base : Nat}
+
 variable {fork : Fork} {message : Message fork} {state : TransactionState} {substate : Substate}
   {returnData : ByteArray}
 
 /-- The frame before chain block `i`, with gas for the blocks left and `k` more. -/
-def chainFrame (message : Message fork) (state : TransactionState) (substate : Substate)
+def chainFrame (code : ByteArray) (base : Nat) (message : Message fork) (state : TransactionState)
+    (substate : Substate)
     (returnData : ByteArray) (d ret : U256) (rest : List U256) (pX pY pZ pL : U256) (o k i : Nat)
     (evm : Evm fork Nat) : Prop :=
   ∃ g, (58 - i) * CHAIN_GAS + k ≤ g ∧
-    Known CODE message (chainPc i) (threes d :: d :: ret :: rest) 1536
+    Known code message (base + chainPc i) (threes d :: d :: ret :: rest) 1536
       (chainFacts pX pY pZ pL (chainEnds pX pY pZ d message.data o i) message.data i (o + 16 * i))
       g state substate returnData evm
 
@@ -82,9 +86,9 @@ theorem chain_step {d ret pX pY pZ pL : U256} {rest : List U256} {o k i : Nat} (
     (h3 : ∀ {g : Nat},
       bitwiseAnd (threes d) (BitVec.ofNat 256 (2 ^ digitPos i)) ≠ 0 → G3 ≤ g →
       Hoare fork
-        (Known CODE message (chainPc i) (threes d :: d :: ret :: rest) 1536
+        (Known code message (base + chainPc i) (threes d :: d :: ret :: rest) 1536
           (chainFacts pX pY pZ pL E message.data i (o + 16 * i)) g state substate returnData)
-        (Known CODE message (chainPc (i + 1)) (threes d :: d :: ret :: rest) 1536
+        (Known code message (base + chainPc (i + 1)) (threes d :: d :: ret :: rest) 1536
           (chainFacts pX pY pZ pL (⟨(bufferRead E 0 (16 * i)).toArray⟩ ++ chainEnd pX pY pZ i 3
             ⟨(bufferRead message.data (o + 16 * i) 16).toArray⟩) message.data (i + 1)
             (o + 16 * i + 16)) (g - G3) state substate returnData))
@@ -92,9 +96,9 @@ theorem chain_step {d ret pX pY pZ pL : U256} {rest : List U256} {o k i : Nat} (
       bitwiseAnd (threes d) (BitVec.ofNat 256 (2 ^ digitPos i)) = 0 →
       bitwiseAnd d (BitVec.ofNat 256 (2 ^ (digitPos i + 1))) ≠ 0 → G2 ≤ g →
       Hoare fork
-        (Known CODE message (chainPc i) (threes d :: d :: ret :: rest) 1536
+        (Known code message (base + chainPc i) (threes d :: d :: ret :: rest) 1536
           (chainFacts pX pY pZ pL E message.data i (o + 16 * i)) g state substate returnData)
-        (Known CODE message (chainPc (i + 1)) (threes d :: d :: ret :: rest) 1536
+        (Known code message (base + chainPc (i + 1)) (threes d :: d :: ret :: rest) 1536
           (chainFacts pX pY pZ pL (⟨(bufferRead E 0 (16 * i)).toArray⟩ ++ chainEnd pX pY pZ i 2
             ⟨(bufferRead message.data (o + 16 * i) 16).toArray⟩) message.data (i + 1)
             (o + 16 * i + 16)) (g - G2) state substate returnData))
@@ -103,9 +107,9 @@ theorem chain_step {d ret pX pY pZ pL : U256} {rest : List U256} {o k i : Nat} (
       bitwiseAnd d (BitVec.ofNat 256 (2 ^ (digitPos i + 1))) = 0 →
       bitwiseAnd d (BitVec.ofNat 256 (2 ^ digitPos i)) ≠ 0 → G1 ≤ g →
       Hoare fork
-        (Known CODE message (chainPc i) (threes d :: d :: ret :: rest) 1536
+        (Known code message (base + chainPc i) (threes d :: d :: ret :: rest) 1536
           (chainFacts pX pY pZ pL E message.data i (o + 16 * i)) g state substate returnData)
-        (Known CODE message (chainPc (i + 1)) (threes d :: d :: ret :: rest) 1536
+        (Known code message (base + chainPc (i + 1)) (threes d :: d :: ret :: rest) 1536
           (chainFacts pX pY pZ pL (⟨(bufferRead E 0 (16 * i)).toArray⟩ ++ chainEnd pX pY pZ i 1
             ⟨(bufferRead message.data (o + 16 * i) 16).toArray⟩) message.data (i + 1)
             (o + 16 * i + 16)) (g - G1) state substate returnData))
@@ -114,14 +118,15 @@ theorem chain_step {d ret pX pY pZ pL : U256} {rest : List U256} {o k i : Nat} (
       bitwiseAnd d (BitVec.ofNat 256 (2 ^ (digitPos i + 1))) = 0 →
       bitwiseAnd d (BitVec.ofNat 256 (2 ^ digitPos i)) = 0 → G0 ≤ g →
       Hoare fork
-        (Known CODE message (chainPc i) (threes d :: d :: ret :: rest) 1536
+        (Known code message (base + chainPc i) (threes d :: d :: ret :: rest) 1536
           (chainFacts pX pY pZ pL E message.data i (o + 16 * i)) g state substate returnData)
-        (Known CODE message (chainPc (i + 1)) (threes d :: d :: ret :: rest) 1536
+        (Known code message (base + chainPc (i + 1)) (threes d :: d :: ret :: rest) 1536
           (chainFacts pX pY pZ pL (⟨(bufferRead E 0 (16 * i)).toArray⟩ ++ chainEnd pX pY pZ i 0
             ⟨(bufferRead message.data (o + 16 * i) 16).toArray⟩) message.data (i + 1)
             (o + 16 * i + 16)) (g - G0) state substate returnData)) :
-    Hoare fork (chainFrame message state substate returnData d ret rest pX pY pZ pL o k i)
-      (chainFrame message state substate returnData d ret rest pX pY pZ pL o k (i + 1)) := by
+    Hoare fork (chainFrame code base message state substate returnData d ret rest pX pY pZ pL o k i)
+      (chainFrame code base message state substate returnData d ret rest pX pY pZ pL o k (i + 1))
+        := by
   subst hE
   intro evm ⟨g, hg, h⟩
   -- The gas of one block, and that of the blocks after it.
@@ -134,12 +139,13 @@ theorem chain_step {d ret pX pY pZ pL : U256} {rest : List U256} {o k i : Nat} (
   have ho : o + 16 * (i + 1) = o + 16 * i + 16 := by omega
   -- The frame after the block, at a digit that the tests of the block fixed.
   have post : ∀ {G : Nat} (digit : Nat), digitAt d (digitPos i) = digit → G ≤ CHAIN_GAS →
-      ∀ after, Known CODE message (chainPc (i + 1)) (threes d :: d :: ret :: rest) 1536
+      ∀ after, Known code message (base + chainPc (i + 1)) (threes d :: d :: ret :: rest) 1536
         (chainFacts pX pY pZ pL (⟨(bufferRead (chainEnds pX pY pZ d message.data o i) 0
           (16 * i)).toArray⟩ ++ chainEnd pX pY pZ i digit
           ⟨(bufferRead message.data (o + 16 * i) 16).toArray⟩) message.data (i + 1)
           (o + 16 * i + 16)) (g - G) state substate returnData after →
-        chainFrame message state substate returnData d ret rest pX pY pZ pL o k (i + 1) after := by
+        chainFrame code base message state substate returnData d ret rest pX pY pZ pL o k (i + 1)
+          after := by
     intro G digit hd hG after ha
     refine ⟨g - G, by omega, ?_⟩
     rw [ho, chainEnds.eq_2, hd]

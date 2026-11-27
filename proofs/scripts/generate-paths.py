@@ -4,7 +4,7 @@
 import argparse
 import sys
 
-from disasm import MODULE, disassemble, read_code
+from disasm import ENTRY, MODULE, disassemble, read_code, relocate
 
 ZERO_ENTRY, ZERO_END = 0x33BD, 0x34FA
 PATH_ENTRY, PATH_LAST = 0x2CE6, 0x33BC
@@ -150,6 +150,7 @@ def flist(items, indent=9):
 
 def wrap(text):
     """Break the lines at 100 columns, after a comma or a space."""
+    text = relocate(text)
     out = []
     for line in text.split("\n"):
         indent = len(line) - len(line.lstrip())

@@ -5,7 +5,7 @@ import argparse
 import re
 import sys
 
-from disasm import MODULE, disassemble, read_code
+from disasm import ENTRY, MODULE, disassemble, read_code, relocate
 
 # The verifier's chain blocks: 58 chains, 16 bytes each from 0x150, then the end of the last block.
 CHAINS = 58
@@ -231,6 +231,7 @@ theorem chain{i}_{digit} {fork_hyp}{{t d ret pX pY pZ pL : U256}} {{rest : List 
 
 def wrap(text: str) -> str:
     """Break the lines at 100 columns, after a comma or a space."""
+    text = relocate(text)
     out = []
     for line in text.split("\n"):
         indent = len(line) - len(line.lstrip())
@@ -282,7 +283,7 @@ def main() -> int:
     pcs = [*block_starts(disassemble(code)), CHAINS_END]
     listed = re.search(r"def CHAIN_PCS : List Nat :=\n  \[([^\]]*)\]",
                        (MODULE / "ChainSteps.lean").read_text()).group(1)
-    stale = [int(pc) for pc in listed.split(",")] != pcs
+    stale = [int(pc) for pc in listed.split(",")] != [pc - ENTRY for pc in pcs]
     if stale:
         print("CHAIN_PCS in ChainSteps.lean is not what the bytecode gives", file=sys.stderr)
     files = render(code)

@@ -79,6 +79,10 @@ jobs:
       - name: Proved bytecode
         run: python3 proofs/scripts/generate-code.py --check
 
+      # The verifier as one block, with its jump targets moved, is read from both bytecodes.
+      - name: Verifier block
+        run: python3 proofs/scripts/generate-block.py --check
+
       # The lemmas of the chain blocks are written from that bytecode, so they must match it.
       - name: Generated proofs
         run: python3 proofs/scripts/generate-chains.py --check

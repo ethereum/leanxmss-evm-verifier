@@ -1,6 +1,6 @@
 module
 
-public import LeanXmssEvmVerifierProofs.Library
+public import LeanXmssEvmVerifierProofs.Verifier
 public import LeanXmssEvmVerifierProofs.HarnessCode
 public import EthLib.Execution.Proofs.Blocks.SystemCall.Contract
 
@@ -49,8 +49,8 @@ def harnessAnswer {fork : Fork} (message : Message fork) : Option U256 :=
 /-- The verifier of the harness is the one of `PQProofOfPossession`, 203 bytes earlier.
 
 Its caller's memory has 96 bytes. -/
-theorem harnessVerifierAt : VerifierAt HARNESS_CODE 0x67 96 HARNESS_VERIFY_FN_GAS := by
-  sorry
+theorem harnessVerifierAt : VerifierAt HARNESS_CODE 0x67 96 HARNESS_VERIFY_FN_GAS :=
+  verifierAtCode (Or.inr rfl)
 
 /-- A call to the harness, from its first byte, answers whether leanXMSS accepts its calldata.
 

@@ -22,15 +22,17 @@ open EthLib.Execution.Evm
 open EthLib.Execution.Evm.Logic
 open EthLib.Execution.State (TransactionState)
 
+variable {code : ByteArray} {base : Nat}
+
 variable {fork : Fork} {message : Message fork} {gas : Nat} {state : TransactionState}
   {substate : Substate} {returnData : ByteArray}
 
 /-- The path at leaf 0 from its entry through level 1: the input of the leaf's parent. -/
-theorem zeroStart (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U256} {W : ByteArray}
-    (hrest : rest.length ≤ 1000) {node : U256} (hgas : 45 ≤ gas) :
-    Hoare fork (Known CODE message 13245 (tree :: node :: ret :: rest) 1536
+theorem zeroStart [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree ret : U256} {rest :
+    List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {node : U256} (hgas : 45 ≤ gas) :
+    Hoare fork (Known code message (base + 12939) (tree :: node :: ret :: rest) 1536
         [(0x4f0, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 13268 (ret :: rest) 1536
+      (Known code message (base + 12962) (ret :: rest) 1536
         [(0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (20, byteBytes 1),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -39,22 +41,22 @@ theorem zeroStart (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U256
          (128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] (gas - 45) state substate returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   have h0 := Known.readPrefix h (s := 0x30) (data := W) (offset := 0) (m := 16) (by evm_fact)
   have h1 := Known.readWord h0 (s := 0x80) (t := 0x95) (word := tree) (offset := 21) (length :=
@@ -66,9 +68,9 @@ theorem zeroStart (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U256
   rcases hf with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path at leaf 0, level 2: the node of level 1 and its sibling. -/
-theorem zeroLevel2 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U256} {W : ByteArray}
-    (hrest : rest.length ≤ 1000) {w : U256} (hgas : 74 ≤ gas) :
-    Hoare fork (Known CODE message 13268 (ret :: rest) 1536
+theorem zeroLevel2 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree ret : U256} {rest
+    : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {w : U256} (hgas : 74 ≤ gas) :
+    Hoare fork (Known code message (base + 12962) (ret :: rest) 1536
         [(0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (20, byteBytes 1),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -77,7 +79,7 @@ theorem zeroLevel2 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U25
          (128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 13287 (ret :: rest) 1536
+      (Known code message (base + 12981) (ret :: rest) 1536
         [(128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (148, byteBytes 2),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -86,18 +88,18 @@ theorem zeroLevel2 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U25
          (0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] (gas - 74) state substate returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   have h0 := Known.readPrefix h (s := 176) (data := W) (offset := 16) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
@@ -105,9 +107,9 @@ theorem zeroLevel2 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U25
   rcases hf with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path at leaf 0, level 3: the node of level 2 and its sibling. -/
-theorem zeroLevel3 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤
-    1000) {w : U256} (hgas : 75 ≤ gas) :
-    Hoare fork (Known CODE message 13287 (ret :: rest) 1536
+theorem zeroLevel3 [hR : VerifierCode code base] {tree ret : U256} {rest : List U256} {W :
+    ByteArray} (hrest : rest.length ≤ 1000) {w : U256} (hgas : 75 ≤ gas) :
+    Hoare fork (Known code message (base + 12981) (ret :: rest) 1536
         [(128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (148, byteBytes 2),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -116,7 +118,7 @@ theorem zeroLevel3 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest :
          (0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 13307 (ret :: rest) 1536
+      (Known code message (base + 13001) (ret :: rest) 1536
         [(0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (20, byteBytes 3),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -125,18 +127,18 @@ theorem zeroLevel3 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest :
          (128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] (gas - 75) state substate returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   have h0 := Known.readPrefix h (s := 48) (data := W) (offset := 32) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
@@ -144,9 +146,9 @@ theorem zeroLevel3 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest :
   rcases hf with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path at leaf 0, level 4: the node of level 3 and its sibling. -/
-theorem zeroLevel4 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U256} {W : ByteArray}
-    (hrest : rest.length ≤ 1000) {w : U256} (hgas : 74 ≤ gas) :
-    Hoare fork (Known CODE message 13307 (ret :: rest) 1536
+theorem zeroLevel4 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree ret : U256} {rest
+    : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {w : U256} (hgas : 74 ≤ gas) :
+    Hoare fork (Known code message (base + 13001) (ret :: rest) 1536
         [(0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (20, byteBytes 3),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -155,7 +157,7 @@ theorem zeroLevel4 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U25
          (128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 13326 (ret :: rest) 1536
+      (Known code message (base + 13020) (ret :: rest) 1536
         [(128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (148, byteBytes 4),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -164,18 +166,18 @@ theorem zeroLevel4 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U25
          (0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] (gas - 74) state substate returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   have h0 := Known.readPrefix h (s := 176) (data := W) (offset := 48) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
@@ -183,9 +185,9 @@ theorem zeroLevel4 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U25
   rcases hf with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path at leaf 0, level 5: the node of level 4 and its sibling. -/
-theorem zeroLevel5 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤
-    1000) {w : U256} (hgas : 75 ≤ gas) :
-    Hoare fork (Known CODE message 13326 (ret :: rest) 1536
+theorem zeroLevel5 [hR : VerifierCode code base] {tree ret : U256} {rest : List U256} {W :
+    ByteArray} (hrest : rest.length ≤ 1000) {w : U256} (hgas : 75 ≤ gas) :
+    Hoare fork (Known code message (base + 13020) (ret :: rest) 1536
         [(128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (148, byteBytes 4),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -194,7 +196,7 @@ theorem zeroLevel5 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest :
          (0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 13346 (ret :: rest) 1536
+      (Known code message (base + 13040) (ret :: rest) 1536
         [(0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (20, byteBytes 5),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -203,18 +205,18 @@ theorem zeroLevel5 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest :
          (128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] (gas - 75) state substate returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   have h0 := Known.readPrefix h (s := 48) (data := W) (offset := 64) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
@@ -222,9 +224,9 @@ theorem zeroLevel5 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest :
   rcases hf with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path at leaf 0, level 6: the node of level 5 and its sibling. -/
-theorem zeroLevel6 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U256} {W : ByteArray}
-    (hrest : rest.length ≤ 1000) {w : U256} (hgas : 74 ≤ gas) :
-    Hoare fork (Known CODE message 13346 (ret :: rest) 1536
+theorem zeroLevel6 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree ret : U256} {rest
+    : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {w : U256} (hgas : 74 ≤ gas) :
+    Hoare fork (Known code message (base + 13040) (ret :: rest) 1536
         [(0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (20, byteBytes 5),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -233,7 +235,7 @@ theorem zeroLevel6 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U25
          (128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 13365 (ret :: rest) 1536
+      (Known code message (base + 13059) (ret :: rest) 1536
         [(128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (148, byteBytes 6),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -242,18 +244,18 @@ theorem zeroLevel6 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U25
          (0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] (gas - 74) state substate returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   have h0 := Known.readPrefix h (s := 176) (data := W) (offset := 80) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
@@ -261,9 +263,9 @@ theorem zeroLevel6 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U25
   rcases hf with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path at leaf 0, level 7: the node of level 6 and its sibling. -/
-theorem zeroLevel7 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤
-    1000) {w : U256} (hgas : 75 ≤ gas) :
-    Hoare fork (Known CODE message 13365 (ret :: rest) 1536
+theorem zeroLevel7 [hR : VerifierCode code base] {tree ret : U256} {rest : List U256} {W :
+    ByteArray} (hrest : rest.length ≤ 1000) {w : U256} (hgas : 75 ≤ gas) :
+    Hoare fork (Known code message (base + 13059) (ret :: rest) 1536
         [(128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (148, byteBytes 6),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -272,7 +274,7 @@ theorem zeroLevel7 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest :
          (0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 13385 (ret :: rest) 1536
+      (Known code message (base + 13079) (ret :: rest) 1536
         [(0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (20, byteBytes 7),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -281,18 +283,18 @@ theorem zeroLevel7 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest :
          (128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] (gas - 75) state substate returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   have h0 := Known.readPrefix h (s := 48) (data := W) (offset := 96) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
@@ -300,9 +302,9 @@ theorem zeroLevel7 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest :
   rcases hf with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path at leaf 0, level 8: the node of level 7 and its sibling. -/
-theorem zeroLevel8 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U256} {W : ByteArray}
-    (hrest : rest.length ≤ 1000) {w : U256} (hgas : 74 ≤ gas) :
-    Hoare fork (Known CODE message 13385 (ret :: rest) 1536
+theorem zeroLevel8 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree ret : U256} {rest
+    : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {w : U256} (hgas : 74 ≤ gas) :
+    Hoare fork (Known code message (base + 13079) (ret :: rest) 1536
         [(0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (20, byteBytes 7),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -311,7 +313,7 @@ theorem zeroLevel8 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U25
          (128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 13404 (ret :: rest) 1536
+      (Known code message (base + 13098) (ret :: rest) 1536
         [(128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (148, byteBytes 8),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -320,18 +322,18 @@ theorem zeroLevel8 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U25
          (0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] (gas - 74) state substate returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   have h0 := Known.readPrefix h (s := 176) (data := W) (offset := 112) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
@@ -339,9 +341,9 @@ theorem zeroLevel8 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U25
   rcases hf with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path at leaf 0, level 9: the node of level 8 and its sibling. -/
-theorem zeroLevel9 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤
-    1000) {w : U256} (hgas : 75 ≤ gas) :
-    Hoare fork (Known CODE message 13404 (ret :: rest) 1536
+theorem zeroLevel9 [hR : VerifierCode code base] {tree ret : U256} {rest : List U256} {W :
+    ByteArray} (hrest : rest.length ≤ 1000) {w : U256} (hgas : 75 ≤ gas) :
+    Hoare fork (Known code message (base + 13098) (ret :: rest) 1536
         [(128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (148, byteBytes 8),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -350,7 +352,7 @@ theorem zeroLevel9 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest :
          (0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 13424 (ret :: rest) 1536
+      (Known code message (base + 13118) (ret :: rest) 1536
         [(0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (20, byteBytes 9),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -359,18 +361,18 @@ theorem zeroLevel9 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest :
          (128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] (gas - 75) state substate returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   have h0 := Known.readPrefix h (s := 48) (data := W) (offset := 128) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
@@ -378,9 +380,9 @@ theorem zeroLevel9 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest :
   rcases hf with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path at leaf 0, level 10: the node of level 9 and its sibling. -/
-theorem zeroLevel10 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U256} {W : ByteArray}
-    (hrest : rest.length ≤ 1000) {w : U256} (hgas : 74 ≤ gas) :
-    Hoare fork (Known CODE message 13424 (ret :: rest) 1536
+theorem zeroLevel10 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree ret : U256} {rest
+    : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {w : U256} (hgas : 74 ≤ gas) :
+    Hoare fork (Known code message (base + 13118) (ret :: rest) 1536
         [(0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (20, byteBytes 9),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -389,7 +391,7 @@ theorem zeroLevel10 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U2
          (128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 13443 (ret :: rest) 1536
+      (Known code message (base + 13137) (ret :: rest) 1536
         [(128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (148, byteBytes 10),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -398,18 +400,18 @@ theorem zeroLevel10 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U2
          (0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] (gas - 74) state substate returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   have h0 := Known.readPrefix h (s := 176) (data := W) (offset := 144) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
@@ -417,9 +419,9 @@ theorem zeroLevel10 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U2
   rcases hf with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path at leaf 0, level 11: the node of level 10 and its sibling. -/
-theorem zeroLevel11 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤
-    1000) {w : U256} (hgas : 75 ≤ gas) :
-    Hoare fork (Known CODE message 13443 (ret :: rest) 1536
+theorem zeroLevel11 [hR : VerifierCode code base] {tree ret : U256} {rest : List U256} {W :
+    ByteArray} (hrest : rest.length ≤ 1000) {w : U256} (hgas : 75 ≤ gas) :
+    Hoare fork (Known code message (base + 13137) (ret :: rest) 1536
         [(128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (148, byteBytes 10),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -428,7 +430,7 @@ theorem zeroLevel11 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest 
          (0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 13463 (ret :: rest) 1536
+      (Known code message (base + 13157) (ret :: rest) 1536
         [(0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (20, byteBytes 11),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -437,18 +439,18 @@ theorem zeroLevel11 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest 
          (128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] (gas - 75) state substate returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   have h0 := Known.readPrefix h (s := 48) (data := W) (offset := 160) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
@@ -456,9 +458,9 @@ theorem zeroLevel11 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest 
   rcases hf with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path at leaf 0, level 12: the node of level 11 and its sibling. -/
-theorem zeroLevel12 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U256} {W : ByteArray}
-    (hrest : rest.length ≤ 1000) {w : U256} (hgas : 74 ≤ gas) :
-    Hoare fork (Known CODE message 13463 (ret :: rest) 1536
+theorem zeroLevel12 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree ret : U256} {rest
+    : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {w : U256} (hgas : 74 ≤ gas) :
+    Hoare fork (Known code message (base + 13157) (ret :: rest) 1536
         [(0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (20, byteBytes 11),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -467,7 +469,7 @@ theorem zeroLevel12 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U2
          (128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 13482 (ret :: rest) 1536
+      (Known code message (base + 13176) (ret :: rest) 1536
         [(128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (148, byteBytes 12),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -476,18 +478,18 @@ theorem zeroLevel12 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U2
          (0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] (gas - 74) state substate returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   have h0 := Known.readPrefix h (s := 176) (data := W) (offset := 176) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
@@ -495,9 +497,9 @@ theorem zeroLevel12 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U2
   rcases hf with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path at leaf 0, level 13: the node of level 12 and its sibling. -/
-theorem zeroLevel13 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤
-    1000) {w : U256} (hgas : 75 ≤ gas) :
-    Hoare fork (Known CODE message 13482 (ret :: rest) 1536
+theorem zeroLevel13 [hR : VerifierCode code base] {tree ret : U256} {rest : List U256} {W :
+    ByteArray} (hrest : rest.length ≤ 1000) {w : U256} (hgas : 75 ≤ gas) :
+    Hoare fork (Known code message (base + 13176) (ret :: rest) 1536
         [(128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (148, byteBytes 12),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -506,7 +508,7 @@ theorem zeroLevel13 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest 
          (0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 13502 (ret :: rest) 1536
+      (Known code message (base + 13196) (ret :: rest) 1536
         [(0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (20, byteBytes 13),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -515,18 +517,18 @@ theorem zeroLevel13 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest 
          (128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] (gas - 75) state substate returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   have h0 := Known.readPrefix h (s := 48) (data := W) (offset := 192) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
@@ -534,9 +536,9 @@ theorem zeroLevel13 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest 
   rcases hf with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path at leaf 0, level 14: the node of level 13 and its sibling. -/
-theorem zeroLevel14 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U256} {W : ByteArray}
-    (hrest : rest.length ≤ 1000) {w : U256} (hgas : 74 ≤ gas) :
-    Hoare fork (Known CODE message 13502 (ret :: rest) 1536
+theorem zeroLevel14 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree ret : U256} {rest
+    : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {w : U256} (hgas : 74 ≤ gas) :
+    Hoare fork (Known code message (base + 13196) (ret :: rest) 1536
         [(0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (20, byteBytes 13),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -545,7 +547,7 @@ theorem zeroLevel14 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U2
          (128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 13521 (ret :: rest) 1536
+      (Known code message (base + 13215) (ret :: rest) 1536
         [(128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (148, byteBytes 14),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -554,18 +556,18 @@ theorem zeroLevel14 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U2
          (0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] (gas - 74) state substate returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   have h0 := Known.readPrefix h (s := 176) (data := W) (offset := 208) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
@@ -573,9 +575,9 @@ theorem zeroLevel14 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U2
   rcases hf with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path at leaf 0, level 15: the node of level 14 and its sibling. -/
-theorem zeroLevel15 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤
-    1000) {w : U256} (hgas : 75 ≤ gas) :
-    Hoare fork (Known CODE message 13521 (ret :: rest) 1536
+theorem zeroLevel15 [hR : VerifierCode code base] {tree ret : U256} {rest : List U256} {W :
+    ByteArray} (hrest : rest.length ≤ 1000) {w : U256} (hgas : 75 ≤ gas) :
+    Hoare fork (Known code message (base + 13215) (ret :: rest) 1536
         [(128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (148, byteBytes 14),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -584,7 +586,7 @@ theorem zeroLevel15 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest 
          (0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 13541 (ret :: rest) 1536
+      (Known code message (base + 13235) (ret :: rest) 1536
         [(0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (20, byteBytes 15),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -593,18 +595,18 @@ theorem zeroLevel15 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest 
          (128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] (gas - 75) state substate returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   have h0 := Known.readPrefix h (s := 48) (data := W) (offset := 224) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
@@ -612,9 +614,9 @@ theorem zeroLevel15 {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest 
   rcases hf with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path at leaf 0, level 16: the node of level 15 and its sibling. -/
-theorem zeroLevel16 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U256} {W : ByteArray}
-    (hrest : rest.length ≤ 1000) {w : U256} (hgas : 80 ≤ gas) :
-    Hoare fork (Known CODE message 13541 (ret :: rest) 1536
+theorem zeroLevel16 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree ret : U256} {rest
+    : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {w : U256} (hgas : 80 ≤ gas) :
+    Hoare fork (Known code message (base + 13235) (ret :: rest) 1536
         [(0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (20, byteBytes 15),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -623,7 +625,7 @@ theorem zeroLevel16 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U2
          (128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 13562 (0x40 :: ret :: rest) 1536
+      (Known code message (base + 13256) (0x40 :: ret :: rest) 1536
         [(128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (148, byteBytes 16),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -632,20 +634,20 @@ theorem zeroLevel16 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U2
          (0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] (gas - 80) state substate returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   have h0 := Known.readPrefix h (s := 176) (data := W) (offset := 240) (m := 16) (by evm_fact)
   refine Known.mono h0 fun f hf => ?_
@@ -653,10 +655,10 @@ theorem zeroLevel16 (hfork : .fusaka ≤ fork) {tree ret : U256} {rest : List U2
   rcases hf with rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- The path at leaf 0 hashes the node of level 16 and jumps back with it. -/
-theorem zeroEnd {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000)
-    {w : U256}
-    (hret : isValidJumpDest (validJumpDestinations CODE) ret.toNat = true) (hgas : 56 ≤ gas) :
-    Hoare fork (Known CODE message 13562 (0x40 :: ret :: rest) 1536
+theorem zeroEnd [hR : VerifierCode code base] {tree ret : U256} {rest : List U256} {W : ByteArray}
+    (hrest : rest.length ≤ 1000) {w : U256}
+    (hret : isValidJumpDest (validJumpDestinations code) ret.toNat = true) (hgas : 56 ≤ gas) :
+    Hoare fork (Known code message (base + 13256) (0x40 :: ret :: rest) 1536
         [(128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (148, byteBytes 16),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -665,7 +667,7 @@ theorem zeroEnd {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest : re
          (0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message ret.toNat (keccak (zeroInput tree w 16 W) :: rest) 1536
+      (Known code message ret.toNat (keccak (zeroInput tree w 16 W) :: rest) 1536
         [(128, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (148, byteBytes 16),
          (149, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
@@ -674,9 +676,9 @@ theorem zeroEnd {tree ret : U256} {rest : List U256} {W : ByteArray} (hrest : re
          (0, ⟨(bufferRead (wordBytes tree) 0 20).toArray⟩),
          (21, ⟨(bufferRead (wordBytes tree) 21 11).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] (gas - 56) state substate returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
   lx_jumpRet hret
   exact Triple.of_imp fun _ h => h
 
@@ -686,13 +688,14 @@ def ZERO_PATH_GAS : Nat := 1224
 /-- The path at leaf 0 jumps back with the root of the leaf `node`, over the siblings in `W`.
 
 `W` holds the 16 siblings from byte 0, then 16 bytes that the path reads but does not hash. -/
-theorem pathRootAtZero_spec (hfork : .fusaka ≤ fork) {tree node ret : U256} {rest : List U256}
+theorem pathRootAtZero_spec [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree node ret
+    : U256} {rest : List U256}
     {W : ByteArray} (hrest : rest.length ≤ 1000)
-    (hret : isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)
+    (hret : isValidJumpDest (validJumpDestinations code) ret.toNat = true)
     (hgas : ZERO_PATH_GAS ≤ gas) :
-    Hoare fork (Known CODE message 13245 (tree :: node :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 12939) (tree :: node :: ret :: rest) 1536
         [(0x4f0, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message ret.toNat (zeroNode tree node W 16 :: rest) 1536 [] (gas - ZERO_PATH_GAS)
+      (Known code message ret.toNat (zeroNode tree node W 16 :: rest) 1536 [] (gas - ZERO_PATH_GAS)
         state substate returnData) := by
   unfold ZERO_PATH_GAS at hgas ⊢
   refine Triple.seq (zeroStart hfork hrest (by omega)) ?_

@@ -21,33 +21,35 @@ open EthLib.Execution.Evm
 open EthLib.Execution.Evm.Logic
 open EthLib.Execution.State (TransactionState)
 
+variable {code : ByteArray} {base : Nat}
+
 variable {fork : Fork} {message : Message fork} {gas : Nat} {state : TransactionState}
   {substate : Substate} {returnData : ByteArray}
 
 /-- Chain 20, digit 3. -/
-theorem chain20_3 {t d ret pX pY pZ pL : U256} {rest : List U256}
+theorem chain20_3 [hR : VerifierCode code base] {t d ret pX pY pZ pL : U256} {rest : List U256}
     {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x0100000000000000000000#256 ≠ 0) (hgas : 35 ≤ gas) :
-    Hoare fork (Known CODE message 4491 (t :: d :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 4185) (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
          (0x120, wordBytes pL ++ ⟨(bufferRead E 0 320).toArray⟩),
          (656, ⟨(bufferRead message.data o 864).toArray⟩)] gas state substate returnData)
-      (Known CODE message 4688 (t :: d :: ret :: rest) 1536
+      (Known code message (base + 4382) (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
          (0x120, wordBytes pL ++ ⟨(bufferRead (⟨(bufferRead E 0 320).toArray⟩ ++ chainEnd pX pY pZ
            20 3 ⟨(bufferRead message.data o 16).toArray⟩) 0 336).toArray⟩),
          (672, ⟨(bufferRead message.data (o + 16) 848).toArray⟩)] (gas - 35) state substate
            returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   simp only [chainEnd, first16, stepWord, indexWord, Nat.reduceMul, Nat.reducePow]
   exact addEnd h (by evm_fact) (by evm_fact) (by evm_size)
@@ -57,44 +59,45 @@ theorem chain20_3 {t d ret pX pY pZ pL : U256} {rest : List U256}
     (by evm_fact) (by evm_fact) (by evm_fact) (by evm_fact)
 
 /-- Chain 20, digit 2. -/
-theorem chain20_2 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
+theorem chain20_2 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL :
+    U256} {rest : List U256}
     {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x0100000000000000000000#256 = 0) (h1 : bitwiseAnd d
         0x0200000000000000000000#256 ≠ 0) (hgas : 120 ≤ gas) :
-    Hoare fork (Known CODE message 4491 (t :: d :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 4185) (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
          (0x120, wordBytes pL ++ ⟨(bufferRead E 0 320).toArray⟩),
          (656, ⟨(bufferRead message.data o 864).toArray⟩)] gas state substate returnData)
-      (Known CODE message 4688 (t :: d :: ret :: rest) 1536
+      (Known code message (base + 4382) (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
          (0x120, wordBytes pL ++ ⟨(bufferRead (⟨(bufferRead E 0 320).toArray⟩ ++ chainEnd pX pY pZ
            20 2 ⟨(bufferRead message.data o 16).toArray⟩) 0 336).toArray⟩),
          (672, ⟨(bufferRead message.data (o + 16) 848).toArray⟩)] (gas - 120) state substate
            returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   simp only [chainEnd, first16, stepWord, indexWord, Nat.reduceMul, Nat.reducePow]
   exact addEnd h (by evm_fact) (by evm_fact) (by evm_size)
@@ -104,59 +107,60 @@ theorem chain20_2 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
     (by evm_fact) (by evm_fact) (by evm_fact) (by evm_fact)
 
 /-- Chain 20, digit 1. -/
-theorem chain20_1 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
+theorem chain20_1 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL :
+    U256} {rest : List U256}
     {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x0100000000000000000000#256 = 0) (h1 : bitwiseAnd d
         0x0200000000000000000000#256 = 0) (h2 : bitwiseAnd d 0x0100000000000000000000#256 ≠ 0)
         (hgas : 206 ≤ gas) :
-    Hoare fork (Known CODE message 4491 (t :: d :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 4185) (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
          (0x120, wordBytes pL ++ ⟨(bufferRead E 0 320).toArray⟩),
          (656, ⟨(bufferRead message.data o 864).toArray⟩)] gas state substate returnData)
-      (Known CODE message 4688 (t :: d :: ret :: rest) 1536
+      (Known code message (base + 4382) (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
          (0x120, wordBytes pL ++ ⟨(bufferRead (⟨(bufferRead E 0 320).toArray⟩ ++ chainEnd pX pY pZ
            20 1 ⟨(bufferRead message.data o 16).toArray⟩) 0 336).toArray⟩),
          (672, ⟨(bufferRead message.data (o + 16) 848).toArray⟩)] (gas - 206) state substate
            returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   simp only [chainEnd, first16, stepWord, indexWord, Nat.reduceMul, Nat.reducePow]
   exact addEnd h (by evm_fact) (by evm_fact) (by evm_size)
@@ -166,67 +170,68 @@ theorem chain20_1 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
     (by evm_fact) (by evm_fact) (by evm_fact) (by evm_fact)
 
 /-- Chain 20, digit 0. -/
-theorem chain20_0 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
+theorem chain20_0 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL :
+    U256} {rest : List U256}
     {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x0100000000000000000000#256 = 0) (h1 : bitwiseAnd d
         0x0200000000000000000000#256 = 0) (h2 : bitwiseAnd d 0x0100000000000000000000#256 = 0)
         (hgas : 269 ≤ gas) :
-    Hoare fork (Known CODE message 4491 (t :: d :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 4185) (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
          (0x120, wordBytes pL ++ ⟨(bufferRead E 0 320).toArray⟩),
          (656, ⟨(bufferRead message.data o 864).toArray⟩)] gas state substate returnData)
-      (Known CODE message 4688 (t :: d :: ret :: rest) 1536
+      (Known code message (base + 4382) (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
          (0x120, wordBytes pL ++ ⟨(bufferRead (⟨(bufferRead E 0 320).toArray⟩ ++ chainEnd pX pY pZ
            20 0 ⟨(bufferRead message.data o 16).toArray⟩) 0 336).toArray⟩),
          (672, ⟨(bufferRead message.data (o + 16) 848).toArray⟩)] (gas - 269) state substate
            returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   simp only [chainEnd, first16, stepWord, indexWord, Nat.reduceMul, Nat.reducePow]
   exact addEnd h (by evm_fact) (by evm_fact) (by evm_size)
@@ -236,29 +241,29 @@ theorem chain20_0 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
     (by evm_fact) (by evm_fact) (by evm_fact) (by evm_fact)
 
 /-- Chain 21, digit 3. -/
-theorem chain21_3 {t d ret pX pY pZ pL : U256} {rest : List U256}
+theorem chain21_3 [hR : VerifierCode code base] {t d ret pX pY pZ pL : U256} {rest : List U256}
     {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x0400000000000000000000#256 ≠ 0) (hgas : 35 ≤ gas) :
-    Hoare fork (Known CODE message 4688 (t :: d :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 4382) (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
          (0x120, wordBytes pL ++ ⟨(bufferRead E 0 336).toArray⟩),
          (672, ⟨(bufferRead message.data o 848).toArray⟩)] gas state substate returnData)
-      (Known CODE message 4885 (t :: d :: ret :: rest) 1536
+      (Known code message (base + 4579) (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
          (0x120, wordBytes pL ++ ⟨(bufferRead (⟨(bufferRead E 0 336).toArray⟩ ++ chainEnd pX pY pZ
            21 3 ⟨(bufferRead message.data o 16).toArray⟩) 0 352).toArray⟩),
          (688, ⟨(bufferRead message.data (o + 16) 832).toArray⟩)] (gas - 35) state substate
            returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   simp only [chainEnd, first16, stepWord, indexWord, Nat.reduceMul, Nat.reducePow]
   exact addEnd h (by evm_fact) (by evm_fact) (by evm_size)
@@ -268,44 +273,45 @@ theorem chain21_3 {t d ret pX pY pZ pL : U256} {rest : List U256}
     (by evm_fact) (by evm_fact) (by evm_fact) (by evm_fact)
 
 /-- Chain 21, digit 2. -/
-theorem chain21_2 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
+theorem chain21_2 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL :
+    U256} {rest : List U256}
     {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x0400000000000000000000#256 = 0) (h1 : bitwiseAnd d
         0x0800000000000000000000#256 ≠ 0) (hgas : 120 ≤ gas) :
-    Hoare fork (Known CODE message 4688 (t :: d :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 4382) (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
          (0x120, wordBytes pL ++ ⟨(bufferRead E 0 336).toArray⟩),
          (672, ⟨(bufferRead message.data o 848).toArray⟩)] gas state substate returnData)
-      (Known CODE message 4885 (t :: d :: ret :: rest) 1536
+      (Known code message (base + 4579) (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
          (0x120, wordBytes pL ++ ⟨(bufferRead (⟨(bufferRead E 0 336).toArray⟩ ++ chainEnd pX pY pZ
            21 2 ⟨(bufferRead message.data o 16).toArray⟩) 0 352).toArray⟩),
          (688, ⟨(bufferRead message.data (o + 16) 832).toArray⟩)] (gas - 120) state substate
            returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   simp only [chainEnd, first16, stepWord, indexWord, Nat.reduceMul, Nat.reducePow]
   exact addEnd h (by evm_fact) (by evm_fact) (by evm_size)
@@ -315,59 +321,60 @@ theorem chain21_2 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
     (by evm_fact) (by evm_fact) (by evm_fact) (by evm_fact)
 
 /-- Chain 21, digit 1. -/
-theorem chain21_1 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
+theorem chain21_1 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL :
+    U256} {rest : List U256}
     {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x0400000000000000000000#256 = 0) (h1 : bitwiseAnd d
         0x0800000000000000000000#256 = 0) (h2 : bitwiseAnd d 0x0400000000000000000000#256 ≠ 0)
         (hgas : 206 ≤ gas) :
-    Hoare fork (Known CODE message 4688 (t :: d :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 4382) (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
          (0x120, wordBytes pL ++ ⟨(bufferRead E 0 336).toArray⟩),
          (672, ⟨(bufferRead message.data o 848).toArray⟩)] gas state substate returnData)
-      (Known CODE message 4885 (t :: d :: ret :: rest) 1536
+      (Known code message (base + 4579) (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
          (0x120, wordBytes pL ++ ⟨(bufferRead (⟨(bufferRead E 0 336).toArray⟩ ++ chainEnd pX pY pZ
            21 1 ⟨(bufferRead message.data o 16).toArray⟩) 0 352).toArray⟩),
          (688, ⟨(bufferRead message.data (o + 16) 832).toArray⟩)] (gas - 206) state substate
            returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   simp only [chainEnd, first16, stepWord, indexWord, Nat.reduceMul, Nat.reducePow]
   exact addEnd h (by evm_fact) (by evm_fact) (by evm_size)
@@ -377,67 +384,68 @@ theorem chain21_1 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest 
     (by evm_fact) (by evm_fact) (by evm_fact) (by evm_fact)
 
 /-- Chain 21, digit 0. -/
-theorem chain21_0 (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL : U256} {rest : List U256}
+theorem chain21_0 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {t d ret pX pY pZ pL :
+    U256} {rest : List U256}
     {o : Nat} {E : ByteArray} (hrest : rest.length ≤ 1000)
     (h0 : bitwiseAnd t 0x0400000000000000000000#256 = 0) (h1 : bitwiseAnd d
         0x0800000000000000000000#256 = 0) (h2 : bitwiseAnd d 0x0400000000000000000000#256 = 0)
         (hgas : 269 ≤ gas) :
-    Hoare fork (Known CODE message 4688 (t :: d :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 4382) (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
          (0x120, wordBytes pL ++ ⟨(bufferRead E 0 336).toArray⟩),
          (672, ⟨(bufferRead message.data o 848).toArray⟩)] gas state substate returnData)
-      (Known CODE message 4885 (t :: d :: ret :: rest) 1536
+      (Known code message (base + 4579) (t :: d :: ret :: rest) 1536
         [(0, wordBytes pX), (0x80, wordBytes pY), (0xd0, wordBytes pZ),
          (0x120, wordBytes pL ++ ⟨(bufferRead (⟨(bufferRead E 0 336).toArray⟩ ++ chainEnd pX pY pZ
            21 0 ⟨(bufferRead message.data o 16).toArray⟩) 0 352).toArray⟩),
          (688, ⟨(bufferRead message.data (o + 16) 832).toArray⟩)] (gas - 269) state substate
            returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => ?_
   simp only [chainEnd, first16, stepWord, indexWord, Nat.reduceMul, Nat.reducePow]
   exact addEnd h (by evm_fact) (by evm_fact) (by evm_size)

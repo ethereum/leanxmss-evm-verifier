@@ -25,6 +25,8 @@ open EthLib.Execution.Evm
 open EthLib.Execution.Evm.Logic
 open EthLib.Execution.State (TransactionState)
 
+variable {code : ByteArray} {base : Nat}
+
 variable {fork : Fork} {message : Message fork} {gas : Nat} {state : TransactionState}
   {substate : Substate} {returnData : ByteArray}
 
@@ -61,69 +63,74 @@ def LAYER_GAS : Nat :=
   74 + (58 * CHAIN_GAS + 28) + 219 + (24 + 29 + PATH_GAS_MAX + 42)
 
 /-- The words `P | A` of the layer and the call of its chains. -/
-theorem layerStart (hfork : .fusaka ≤ fork) {pa tree index digits ret : U256} {rest : List U256}
+theorem layerStart [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {pa tree index digits
+    ret : U256} {rest : List U256}
     {s : Nat} (hrest : rest.length ≤ 993) (hgas : 74 ≤ gas) :
-    Hoare fork (Known CODE message 0x34ff (pa :: tree :: index :: digits :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 0x33cd) (pa :: tree :: index :: digits :: ret :: rest)
+        1536
         [(0x140, ⟨(bufferRead message.data s 1200).toArray⟩)] gas state substate returnData)
-      (Known CODE message 0x1ca (digits :: 0x3543 :: tree :: index :: digits :: ret :: rest) 1536
+      (Known code message (base + 0x98) (digits :: BitVec.ofNat 256 (base + 0x3411) :: tree ::
+        index :: digits :: ret :: rest) 1536
         [(0, wordBytes (bitwiseOr pa 0x410000000000000000#256)),
           (0x80, wordBytes (bitwiseOr pa 0x210000000000000000#256)),
           (0xd0, wordBytes (bitwiseOr pa 0x10000000000000000#256)),
           (0x120, wordBytes (bitwiseOr 0x20000000000000000#256 pa)),
           (0x150, ⟨(bufferRead message.data (s + 16) 1184).toArray⟩)] (gas - 74) state substate
         returnData) := by
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   refine Triple.of_imp fun _ h => Known.mono (Known.readAt h (s := 0x140) (t := 0x150)
     (a := 16) (m := 1184) (by evm_fact)) fun f hf => ?_
   simp only [List.mem_cons, List.not_mem_nil, or_false] at hf
   rcases hf with rfl | rfl | rfl | rfl | rfl <;> evm_fact
 
 /-- At leaf index 0, the layer takes the path at leaf 0 from its leaf, and jumps back. -/
-theorem layerZero (hfork : .fusaka ≤ fork) {tree digits ret leaf : U256} {rest : List U256}
+theorem layerZero [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree digits ret leaf :
+    U256} {rest : List U256}
     {data : ByteArray} {o : Nat} (hrest : rest.length ≤ 993)
-    (hret : isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)
+    (hret : isValidJumpDest (validJumpDestinations code) ret.toNat = true)
     (hgas : LAYER_ZERO_GAS ≤ gas) :
-    Hoare fork (Known CODE message 0x354c (leaf :: 0 :: tree :: 0 :: digits :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 0x341a) (leaf :: 0 :: tree :: 0 :: digits :: ret ::
+        rest) 1536
         [(0x4f0, ⟨(bufferRead data o 256).toArray⟩)] gas state substate returnData)
-      (Known CODE message ret.toNat
+      (Known code message ret.toNat
         (zeroNode tree leaf ⟨(bufferRead data o 256).toArray⟩ 16 :: rest) 1536 []
         (gas - LAYER_ZERO_GAS) state substate returnData) := by
   unfold LAYER_ZERO_GAS ZERO_PATH_GAS at hgas ⊢
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   -- The path reads the 16 bytes after the siblings with the last one, as some bytes `J`.
   intro evm h
   have hm := h.append_memory (s := 0x4f0) (bytes := ⟨(bufferRead data o 256).toArray⟩) (n := 16)
@@ -141,37 +148,39 @@ theorem layerZero (hfork : .fusaka ≤ fork) {tree digits ret leaf : U256} {rest
       exact List.mem_cons_self
   clear h hm
   revert evm
-  refine Triple.seq (pathRootAtZero_spec hfork (ret := 0x357c)
+  refine Triple.seq (pathRootAtZero_spec hfork (ret := BitVec.ofNat 256 (base + 0x344a))
     (rest := 0 :: leaf :: 0 :: tree :: 0 :: digits :: ret :: rest) (by simp; omega)
-    (by evm_dest [CODE, CODE_NUMBER, CODE_SIZE]) ?hg) ?_
+    (by lx_destR) ?hg) ?_
   · unfold ZERO_PATH_GAS
     omega
   rw [show ZERO_PATH_GAS = 1224 from rfl]
-  simp only [BitVec.reduceToNat]
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_pcR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   lx_jumpRet hret
   refine Triple.of_imp fun _ h => ?_
   rw [zeroNode_append _ _ _ (size_bufferRead _ _ _) 16 (by omega)] at h
   exact Known.mono h fun _ hf => by cases hf
 
 /-- At another leaf index, the layer takes the general path from its leaf, and jumps back. -/
-theorem layerPath (hfork : .fusaka ≤ fork) {tree index digits ret leaf : U256}
+theorem layerPath [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree index digits ret
+    leaf : U256}
     {rest : List U256} {data : ByteArray} {o : Nat} (hrest : rest.length ≤ 993)
-    (hret : isValidJumpDest (validJumpDestinations CODE) ret.toNat = true) (hi : index ≠ 0)
+    (hret : isValidJumpDest (validJumpDestinations code) ret.toNat = true) (hi : index ≠ 0)
     (hgas : layerPathGas index ≤ gas) :
-    Hoare fork (Known CODE message 0x354c (leaf :: 0 :: tree :: index :: digits :: ret :: rest)
+    Hoare fork (Known code message (base + 0x341a) (leaf :: 0 :: tree :: index :: digits :: ret ::
+        rest)
         1536 [(0x4f0, ⟨(bufferRead data o 256).toArray⟩)] gas state substate returnData)
-      (Known CODE message ret.toNat
+      (Known code message ret.toNat
         (pathNode tree (bitwiseOr index 0xfffffe0000000000000000#256) leaf
           ⟨(bufferRead data o 256).toArray⟩ 16 :: rest) 1536 []
         (gas - layerPathGas index) state substate returnData) := by
@@ -179,22 +188,22 @@ theorem layerPath (hfork : .fusaka ≤ fork) {tree index digits ret leaf : U256}
   have hp := pathGas_le (bitwiseOr index 0xfffffe0000000000000000#256)
   unfold PATH_GAS_MAX at hp
   -- The test of the leaf index.
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   simp only [equal, hi, ↓reduceIte]
   clear hi
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   -- The path reads the 16 bytes after the siblings with the last one, as some bytes `J`.
   intro evm h
   have hm := h.append_memory (s := 0x4f0) (bytes := ⟨(bufferRead data o 256).toArray⟩) (n := 16)
@@ -212,24 +221,24 @@ theorem layerPath (hfork : .fusaka ≤ fork) {tree index digits ret leaf : U256}
       exact List.mem_cons_self
   clear h hm
   revert evm
-  refine Triple.seq (pathRoot_spec hfork (ret := 0x356b)
+  refine Triple.seq (pathRoot_spec hfork (ret := BitVec.ofNat 256 (base + 0x3439))
     (rest := index :: leaf :: 0 :: tree :: index :: digits :: ret :: rest) (by simp; omega)
-    (by evm_dest [CODE, CODE_NUMBER, CODE_SIZE]) ?hg) ?_
+    (by lx_destR) ?hg) ?_
   · omega
-  simp only [BitVec.reduceToNat]
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_pcR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   lx_jumpRet hret
   refine Triple.of_imp fun _ h => ?_
   rw [pathNode_append _ _ _ _ (size_bufferRead _ _ _) 16 (by omega)] at h
@@ -243,32 +252,35 @@ The layer is the 1200 bytes of `data` from `s`: the randomizer, the 58 chain val
 siblings.
 
 The memory has 1536 bytes, and the frame after knows no fact. -/
-theorem layerRootAt (hfork : .fusaka ≤ fork) {pa tree index digits ret : U256}
+theorem layerRootAt [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {pa tree index digits
+    ret : U256}
     {rest : List U256} {s k : Nat} (hrest : rest.length ≤ 993)
-    (hret : isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)
+    (hret : isValidJumpDest (validJumpDestinations code) ret.toNat = true)
     (hgas : LAYER_GAS + k ≤ gas) :
-    Hoare fork (Known CODE message 0x34ff (pa :: tree :: index :: digits :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 0x33cd) (pa :: tree :: index :: digits :: ret :: rest)
+        1536
         [(0x140, ⟨(bufferRead message.data s 1200).toArray⟩)] gas state substate returnData)
-      (fun evm => ∃ g, k ≤ g ∧ Known CODE message ret.toNat
+      (fun evm => ∃ g, k ≤ g ∧ Known code message ret.toNat
         (layerRootWord pa tree index digits message.data (s + 16) :: rest) 1536 [] g state
         substate returnData evm) := by
   unfold LAYER_GAS at hgas
   refine Triple.seq (layerStart hfork hrest (by omega)) ?_
   refine Triple.seq (chainEndsAt hfork (rest := tree :: index :: digits :: ret :: rest)
     (k := 219 + (24 + 29 + PATH_GAS_MAX + 42) + k) (by simp; omega)
-    (by evm_dest [CODE, CODE_NUMBER, CODE_SIZE]) ?hg) ?_
+    (by lx_destR) ?hg) ?_
   · omega
   refine Triple.exists_pre fun g => Triple.pure_pre fun hg => ?_
-  simp only [chainFacts, Nat.reduceMul, Nat.reduceAdd, Nat.reduceSub, BitVec.reduceToNat]
+  simp only [chainFacts, Nat.reduceMul, Nat.reduceAdd, Nat.reduceSub]
+  lx_pcR
   -- The gas that the steps after the chains need, as one bound.
   unfold PATH_GAS_MAX at hg
   have hg' : 219 ≤ g := by omega
   -- The leaf.
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
-  lx_stepC
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
+  lx_stepR
   generalize hleaf : keccak _ = leaf
   -- The path needs only the siblings.
   refine Triple.seq (Triple.of_imp fun _ h => Known.mono (fewer :=

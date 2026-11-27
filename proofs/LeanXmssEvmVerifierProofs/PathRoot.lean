@@ -21,16 +21,18 @@ open EthLib.Execution.Evm
 open EthLib.Execution.Evm.Logic
 open EthLib.Execution.State (TransactionState)
 
+variable {code : ByteArray} {base : Nat}
+
 variable {fork : Fork} {message : Message fork} {gas : Nat} {state : TransactionState}
   {substate : Substate} {returnData : ByteArray}
 
 /-- The path, level 1, along the branch of its bit. -/
-theorem pathStart (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 1000)
+theorem pathStart [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree index node ret :
+    U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000)
     (hgas : pathCost 1 (pathBit index 1) ≤ gas) :
-    Hoare fork (Known CODE message 11494 (tree :: index :: node :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 11188) (tree :: index :: node :: ret :: rest) 1536
         [(1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 11602 (0 :: tree :: index :: node :: ret :: rest)
+      (Known code message (base + 11296) (0 :: tree :: index :: node :: ret :: rest)
         1536 [(0, wordBytes (pathAddr tree index 1)),
          (32, ⟨(bufferRead (childL (pathBit index 1) node W) (childl (pathBit index 1) 1)
            16).toArray⟩),
@@ -44,15 +46,16 @@ theorem pathStart (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest 
   · exact pathStart_true hfork hrest hb hgas
 
 /-- The path, level 2, along the branch of its bit. -/
-theorem pathLevel2 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
+theorem pathLevel2 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree index node ret :
+    U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R :
+    ByteArray} {l r : Nat}
     (hgas : pathCost 2 (pathBit index 2) ≤ gas) :
-    Hoare fork (Known CODE message 11602 (0 :: tree :: index :: node :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 11296) (0 :: tree :: index :: node :: ret :: rest) 1536
         [(0, wordBytes a),
          (32, ⟨(bufferRead L l 16).toArray⟩),
          (48, ⟨(bufferRead R r 16).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 11714 (0 :: tree :: index :: node :: ret :: rest)
+      (Known code message (base + 11408) (0 :: tree :: index :: node :: ret :: rest)
         1536 [(128, wordBytes (pathAddr tree index 2)),
          (160, ⟨(bufferRead (childL (pathBit index 2) (keccak (wordBytes a ++ (⟨(bufferRead L l
            16).toArray⟩ ++ ⟨(bufferRead R r 16).toArray⟩))) W) (childl (pathBit index 2) 2)
@@ -68,15 +71,16 @@ theorem pathLevel2 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest
   · exact pathLevel2_true hfork hrest hb hgas
 
 /-- The path, level 3, along the branch of its bit. -/
-theorem pathLevel3 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
+theorem pathLevel3 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree index node ret :
+    U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R :
+    ByteArray} {l r : Nat}
     (hgas : pathCost 3 (pathBit index 3) ≤ gas) :
-    Hoare fork (Known CODE message 11714 (0 :: tree :: index :: node :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 11408) (0 :: tree :: index :: node :: ret :: rest) 1536
         [(128, wordBytes a),
          (160, ⟨(bufferRead L l 16).toArray⟩),
          (176, ⟨(bufferRead R r 16).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 11827 (0 :: tree :: index :: node :: ret :: rest)
+      (Known code message (base + 11521) (0 :: tree :: index :: node :: ret :: rest)
         1536 [(0, wordBytes (pathAddr tree index 3)),
          (32, ⟨(bufferRead (childL (pathBit index 3) (keccak (wordBytes a ++ (⟨(bufferRead L l
            16).toArray⟩ ++ ⟨(bufferRead R r 16).toArray⟩))) W) (childl (pathBit index 3) 3)
@@ -92,15 +96,16 @@ theorem pathLevel3 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest
   · exact pathLevel3_true hfork hrest hb hgas
 
 /-- The path, level 4, along the branch of its bit. -/
-theorem pathLevel4 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
+theorem pathLevel4 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree index node ret :
+    U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R :
+    ByteArray} {l r : Nat}
     (hgas : pathCost 4 (pathBit index 4) ≤ gas) :
-    Hoare fork (Known CODE message 11827 (0 :: tree :: index :: node :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 11521) (0 :: tree :: index :: node :: ret :: rest) 1536
         [(0, wordBytes a),
          (32, ⟨(bufferRead L l 16).toArray⟩),
          (48, ⟨(bufferRead R r 16).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 11939 (0 :: tree :: index :: node :: ret :: rest)
+      (Known code message (base + 11633) (0 :: tree :: index :: node :: ret :: rest)
         1536 [(128, wordBytes (pathAddr tree index 4)),
          (160, ⟨(bufferRead (childL (pathBit index 4) (keccak (wordBytes a ++ (⟨(bufferRead L l
            16).toArray⟩ ++ ⟨(bufferRead R r 16).toArray⟩))) W) (childl (pathBit index 4) 4)
@@ -116,15 +121,16 @@ theorem pathLevel4 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest
   · exact pathLevel4_true hfork hrest hb hgas
 
 /-- The path, level 5, along the branch of its bit. -/
-theorem pathLevel5 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
+theorem pathLevel5 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree index node ret :
+    U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R :
+    ByteArray} {l r : Nat}
     (hgas : pathCost 5 (pathBit index 5) ≤ gas) :
-    Hoare fork (Known CODE message 11939 (0 :: tree :: index :: node :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 11633) (0 :: tree :: index :: node :: ret :: rest) 1536
         [(128, wordBytes a),
          (160, ⟨(bufferRead L l 16).toArray⟩),
          (176, ⟨(bufferRead R r 16).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 12052 (0 :: tree :: index :: node :: ret :: rest)
+      (Known code message (base + 11746) (0 :: tree :: index :: node :: ret :: rest)
         1536 [(0, wordBytes (pathAddr tree index 5)),
          (32, ⟨(bufferRead (childL (pathBit index 5) (keccak (wordBytes a ++ (⟨(bufferRead L l
            16).toArray⟩ ++ ⟨(bufferRead R r 16).toArray⟩))) W) (childl (pathBit index 5) 5)
@@ -140,15 +146,16 @@ theorem pathLevel5 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest
   · exact pathLevel5_true hfork hrest hb hgas
 
 /-- The path, level 6, along the branch of its bit. -/
-theorem pathLevel6 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
+theorem pathLevel6 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree index node ret :
+    U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R :
+    ByteArray} {l r : Nat}
     (hgas : pathCost 6 (pathBit index 6) ≤ gas) :
-    Hoare fork (Known CODE message 12052 (0 :: tree :: index :: node :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 11746) (0 :: tree :: index :: node :: ret :: rest) 1536
         [(0, wordBytes a),
          (32, ⟨(bufferRead L l 16).toArray⟩),
          (48, ⟨(bufferRead R r 16).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 12164 (0 :: tree :: index :: node :: ret :: rest)
+      (Known code message (base + 11858) (0 :: tree :: index :: node :: ret :: rest)
         1536 [(128, wordBytes (pathAddr tree index 6)),
          (160, ⟨(bufferRead (childL (pathBit index 6) (keccak (wordBytes a ++ (⟨(bufferRead L l
            16).toArray⟩ ++ ⟨(bufferRead R r 16).toArray⟩))) W) (childl (pathBit index 6) 6)
@@ -164,15 +171,16 @@ theorem pathLevel6 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest
   · exact pathLevel6_true hfork hrest hb hgas
 
 /-- The path, level 7, along the branch of its bit. -/
-theorem pathLevel7 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
+theorem pathLevel7 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree index node ret :
+    U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R :
+    ByteArray} {l r : Nat}
     (hgas : pathCost 7 (pathBit index 7) ≤ gas) :
-    Hoare fork (Known CODE message 12164 (0 :: tree :: index :: node :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 11858) (0 :: tree :: index :: node :: ret :: rest) 1536
         [(128, wordBytes a),
          (160, ⟨(bufferRead L l 16).toArray⟩),
          (176, ⟨(bufferRead R r 16).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 12277 (0 :: tree :: index :: node :: ret :: rest)
+      (Known code message (base + 11971) (0 :: tree :: index :: node :: ret :: rest)
         1536 [(0, wordBytes (pathAddr tree index 7)),
          (32, ⟨(bufferRead (childL (pathBit index 7) (keccak (wordBytes a ++ (⟨(bufferRead L l
            16).toArray⟩ ++ ⟨(bufferRead R r 16).toArray⟩))) W) (childl (pathBit index 7) 7)
@@ -188,15 +196,16 @@ theorem pathLevel7 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest
   · exact pathLevel7_true hfork hrest hb hgas
 
 /-- The path, level 8, along the branch of its bit. -/
-theorem pathLevel8 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
+theorem pathLevel8 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree index node ret :
+    U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R :
+    ByteArray} {l r : Nat}
     (hgas : pathCost 8 (pathBit index 8) ≤ gas) :
-    Hoare fork (Known CODE message 12277 (0 :: tree :: index :: node :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 11971) (0 :: tree :: index :: node :: ret :: rest) 1536
         [(0, wordBytes a),
          (32, ⟨(bufferRead L l 16).toArray⟩),
          (48, ⟨(bufferRead R r 16).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 12365 (0 :: tree :: index :: node :: ret :: rest)
+      (Known code message (base + 12059) (0 :: tree :: index :: node :: ret :: rest)
         1536 [(128, wordBytes (pathAddr tree index 8)),
          (160, ⟨(bufferRead (childL (pathBit index 8) (keccak (wordBytes a ++ (⟨(bufferRead L l
            16).toArray⟩ ++ ⟨(bufferRead R r 16).toArray⟩))) W) (childl (pathBit index 8) 8)
@@ -212,15 +221,16 @@ theorem pathLevel8 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest
   · exact pathLevel8_true hfork hrest hb hgas
 
 /-- The path, level 9, along the branch of its bit. -/
-theorem pathLevel9 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
+theorem pathLevel9 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree index node ret :
+    U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R :
+    ByteArray} {l r : Nat}
     (hgas : pathCost 9 (pathBit index 9) ≤ gas) :
-    Hoare fork (Known CODE message 12365 (0 :: tree :: index :: node :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 12059) (0 :: tree :: index :: node :: ret :: rest) 1536
         [(128, wordBytes a),
          (160, ⟨(bufferRead L l 16).toArray⟩),
          (176, ⟨(bufferRead R r 16).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 12477 (0 :: tree :: index :: node :: ret :: rest)
+      (Known code message (base + 12171) (0 :: tree :: index :: node :: ret :: rest)
         1536 [(0, wordBytes (pathAddr tree index 9)),
          (32, ⟨(bufferRead (childL (pathBit index 9) (keccak (wordBytes a ++ (⟨(bufferRead L l
            16).toArray⟩ ++ ⟨(bufferRead R r 16).toArray⟩))) W) (childl (pathBit index 9) 9)
@@ -236,15 +246,16 @@ theorem pathLevel9 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest
   · exact pathLevel9_true hfork hrest hb hgas
 
 /-- The path, level 10, along the branch of its bit. -/
-theorem pathLevel10 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
+theorem pathLevel10 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree index node ret :
+    U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R :
+    ByteArray} {l r : Nat}
     (hgas : pathCost 10 (pathBit index 10) ≤ gas) :
-    Hoare fork (Known CODE message 12477 (0 :: tree :: index :: node :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 12171) (0 :: tree :: index :: node :: ret :: rest) 1536
         [(0, wordBytes a),
          (32, ⟨(bufferRead L l 16).toArray⟩),
          (48, ⟨(bufferRead R r 16).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 12588 (0 :: tree :: index :: node :: ret :: rest)
+      (Known code message (base + 12282) (0 :: tree :: index :: node :: ret :: rest)
         1536 [(128, wordBytes (pathAddr tree index 10)),
          (160, ⟨(bufferRead (childL (pathBit index 10) (keccak (wordBytes a ++ (⟨(bufferRead L l
            16).toArray⟩ ++ ⟨(bufferRead R r 16).toArray⟩))) W) (childl (pathBit index 10) 10)
@@ -260,15 +271,16 @@ theorem pathLevel10 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {res
   · exact pathLevel10_true hfork hrest hb hgas
 
 /-- The path, level 11, along the branch of its bit. -/
-theorem pathLevel11 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
+theorem pathLevel11 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree index node ret :
+    U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R :
+    ByteArray} {l r : Nat}
     (hgas : pathCost 11 (pathBit index 11) ≤ gas) :
-    Hoare fork (Known CODE message 12588 (0 :: tree :: index :: node :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 12282) (0 :: tree :: index :: node :: ret :: rest) 1536
         [(128, wordBytes a),
          (160, ⟨(bufferRead L l 16).toArray⟩),
          (176, ⟨(bufferRead R r 16).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 12700 (0 :: tree :: index :: node :: ret :: rest)
+      (Known code message (base + 12394) (0 :: tree :: index :: node :: ret :: rest)
         1536 [(0, wordBytes (pathAddr tree index 11)),
          (32, ⟨(bufferRead (childL (pathBit index 11) (keccak (wordBytes a ++ (⟨(bufferRead L l
            16).toArray⟩ ++ ⟨(bufferRead R r 16).toArray⟩))) W) (childl (pathBit index 11) 11)
@@ -284,15 +296,16 @@ theorem pathLevel11 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {res
   · exact pathLevel11_true hfork hrest hb hgas
 
 /-- The path, level 12, along the branch of its bit. -/
-theorem pathLevel12 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
+theorem pathLevel12 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree index node ret :
+    U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R :
+    ByteArray} {l r : Nat}
     (hgas : pathCost 12 (pathBit index 12) ≤ gas) :
-    Hoare fork (Known CODE message 12700 (0 :: tree :: index :: node :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 12394) (0 :: tree :: index :: node :: ret :: rest) 1536
         [(0, wordBytes a),
          (32, ⟨(bufferRead L l 16).toArray⟩),
          (48, ⟨(bufferRead R r 16).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 12811 (0 :: tree :: index :: node :: ret :: rest)
+      (Known code message (base + 12505) (0 :: tree :: index :: node :: ret :: rest)
         1536 [(128, wordBytes (pathAddr tree index 12)),
          (160, ⟨(bufferRead (childL (pathBit index 12) (keccak (wordBytes a ++ (⟨(bufferRead L l
            16).toArray⟩ ++ ⟨(bufferRead R r 16).toArray⟩))) W) (childl (pathBit index 12) 12)
@@ -308,15 +321,16 @@ theorem pathLevel12 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {res
   · exact pathLevel12_true hfork hrest hb hgas
 
 /-- The path, level 13, along the branch of its bit. -/
-theorem pathLevel13 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
+theorem pathLevel13 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree index node ret :
+    U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R :
+    ByteArray} {l r : Nat}
     (hgas : pathCost 13 (pathBit index 13) ≤ gas) :
-    Hoare fork (Known CODE message 12811 (0 :: tree :: index :: node :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 12505) (0 :: tree :: index :: node :: ret :: rest) 1536
         [(128, wordBytes a),
          (160, ⟨(bufferRead L l 16).toArray⟩),
          (176, ⟨(bufferRead R r 16).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 12923 (0 :: tree :: index :: node :: ret :: rest)
+      (Known code message (base + 12617) (0 :: tree :: index :: node :: ret :: rest)
         1536 [(0, wordBytes (pathAddr tree index 13)),
          (32, ⟨(bufferRead (childL (pathBit index 13) (keccak (wordBytes a ++ (⟨(bufferRead L l
            16).toArray⟩ ++ ⟨(bufferRead R r 16).toArray⟩))) W) (childl (pathBit index 13) 13)
@@ -332,15 +346,16 @@ theorem pathLevel13 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {res
   · exact pathLevel13_true hfork hrest hb hgas
 
 /-- The path, level 14, along the branch of its bit. -/
-theorem pathLevel14 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
+theorem pathLevel14 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree index node ret :
+    U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R :
+    ByteArray} {l r : Nat}
     (hgas : pathCost 14 (pathBit index 14) ≤ gas) :
-    Hoare fork (Known CODE message 12923 (0 :: tree :: index :: node :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 12617) (0 :: tree :: index :: node :: ret :: rest) 1536
         [(0, wordBytes a),
          (32, ⟨(bufferRead L l 16).toArray⟩),
          (48, ⟨(bufferRead R r 16).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 13034 (0 :: tree :: index :: node :: ret :: rest)
+      (Known code message (base + 12728) (0 :: tree :: index :: node :: ret :: rest)
         1536 [(128, wordBytes (pathAddr tree index 14)),
          (160, ⟨(bufferRead (childL (pathBit index 14) (keccak (wordBytes a ++ (⟨(bufferRead L l
            16).toArray⟩ ++ ⟨(bufferRead R r 16).toArray⟩))) W) (childl (pathBit index 14) 14)
@@ -356,15 +371,16 @@ theorem pathLevel14 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {res
   · exact pathLevel14_true hfork hrest hb hgas
 
 /-- The path, level 15, along the branch of its bit. -/
-theorem pathLevel15 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
+theorem pathLevel15 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree index node ret :
+    U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R :
+    ByteArray} {l r : Nat}
     (hgas : pathCost 15 (pathBit index 15) ≤ gas) :
-    Hoare fork (Known CODE message 13034 (0 :: tree :: index :: node :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 12728) (0 :: tree :: index :: node :: ret :: rest) 1536
         [(128, wordBytes a),
          (160, ⟨(bufferRead L l 16).toArray⟩),
          (176, ⟨(bufferRead R r 16).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message 13146 (0 :: tree :: index :: node :: ret :: rest)
+      (Known code message (base + 12840) (0 :: tree :: index :: node :: ret :: rest)
         1536 [(0, wordBytes (pathAddr tree index 15)),
          (32, ⟨(bufferRead (childL (pathBit index 15) (keccak (wordBytes a ++ (⟨(bufferRead L l
            16).toArray⟩ ++ ⟨(bufferRead R r 16).toArray⟩))) W) (childl (pathBit index 15) 15)
@@ -380,16 +396,17 @@ theorem pathLevel15 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {res
   · exact pathLevel15_true hfork hrest hb hgas
 
 /-- The path, level 16, along the branch of its bit. -/
-theorem pathLevel16 (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256} {W :
-    ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R : ByteArray} {l r : Nat}
-    (hret : isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)
+theorem pathLevel16 [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree index node ret :
+    U256} {rest : List U256} {W : ByteArray} (hrest : rest.length ≤ 1000) {a : U256} {L R :
+    ByteArray} {l r : Nat}
+    (hret : isValidJumpDest (validJumpDestinations code) ret.toNat = true)
     (hgas : pathCost 16 (pathBit index 16) ≤ gas) :
-    Hoare fork (Known CODE message 13146 (0 :: tree :: index :: node :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 12840) (0 :: tree :: index :: node :: ret :: rest) 1536
         [(0, wordBytes a),
          (32, ⟨(bufferRead L l 16).toArray⟩),
          (48, ⟨(bufferRead R r 16).toArray⟩),
          (1264, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message ret.toNat
+      (Known code message ret.toNat
         (keccak (wordBytes (pathAddr tree index 16) ++ pathPair (pathBit index 16) (keccak
           (wordBytes a ++ (⟨(bufferRead L l 16).toArray⟩ ++ ⟨(bufferRead R r 16).toArray⟩))) W 16)
           :: rest) 1536 []
@@ -411,13 +428,14 @@ def pathGas (index : U256) : Nat :=
 /-- The path of the leaf index `index` jumps back with the root of the leaf `node`.
 
 `W` holds the 16 siblings from byte 0, then 16 bytes that the path reads but does not hash. -/
-theorem pathRoot_spec (hfork : .fusaka ≤ fork) {tree index node ret : U256} {rest : List U256}
+theorem pathRoot_spec [hR : VerifierCode code base] (hfork : .fusaka ≤ fork) {tree index node ret
+    : U256} {rest : List U256}
     {W : ByteArray} (hrest : rest.length ≤ 1000)
-    (hret : isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)
+    (hret : isValidJumpDest (validJumpDestinations code) ret.toNat = true)
     (hgas : pathGas index ≤ gas) :
-    Hoare fork (Known CODE message 11494 (tree :: index :: node :: ret :: rest) 1536
+    Hoare fork (Known code message (base + 11188) (tree :: index :: node :: ret :: rest) 1536
         [(0x4f0, ⟨(bufferRead W 0 272).toArray⟩)] gas state substate returnData)
-      (Known CODE message ret.toNat (pathNode tree index node W 16 :: rest) 1536 []
+      (Known code message ret.toNat (pathNode tree index node W 16 :: rest) 1536 []
         (gas - pathGas index) state substate returnData) := by
   unfold pathGas at hgas ⊢
   refine Triple.seq (pathStart hfork hrest (by omega)) ?_

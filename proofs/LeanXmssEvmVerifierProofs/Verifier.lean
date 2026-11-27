@@ -19,14 +19,22 @@ open EthLib.Base (Fork U256)
 open EthLib.Execution.Evm
 open EthLib.Execution.Evm.Logic
 
-/-- The verifier of `PQProofOfPossession` starts at byte 0x132 of its code.
+/-- The verifier, in any code that holds it from `base`, is the function of `VerifierAt`.
 
-Its caller's memory has 288 bytes. -/
-theorem verifierAt : VerifierAt CODE 0x132 288 VERIFY_FN_GAS := by
+Its caller's memory has 288 bytes, as in the contract, or 96, as in the harness. -/
+theorem verifierAtCode {code : ByteArray} {base : Nat} [VerifierCode code base] {size : Nat}
+    (hsize : size = 288 ∨ size = 96) :
+    VerifierAt code base size (VERIFY_FN_GAS + ENTRY_GROWTH size) := by
   intro fork message gas state substate returnData length offset messageWord pkWord ret rest facts
     k hfork hoff hfree hrest hret hgas
   -- The code answers its word, which is leanXMSS's answer.
   rw [← codeVerify_eq hoff]
-  exact verifierRun hfork hfree hrest hret hgas
+  exact verifierRun hfork hsize hfree hrest hret hgas
+
+/-- The verifier of `PQProofOfPossession` starts at byte 0x132 of its code.
+
+Its caller's memory has 288 bytes. -/
+theorem verifierAt : VerifierAt CODE 0x132 288 VERIFY_FN_GAS :=
+  verifierAtCode (Or.inl rfl)
 
 end LeanXmssEvmVerifierProofs
