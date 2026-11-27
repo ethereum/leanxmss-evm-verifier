@@ -1,7 +1,7 @@
 module
 
 public import LeanXmssEvmVerifierProofs.Body
-public import LeanXmssEvmVerifierProofs.Library
+public import LeanXmssEvmVerifierProofs.Verifier
 
 /-!
 # The call of the verifier in `PQProofOfPossession`

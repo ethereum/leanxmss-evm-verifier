@@ -76,10 +76,4 @@ def VerifierAt (code : ByteArray) (entry size bound : Nat) : Prop :=
             ⟨(bufferRead message.data offset.toNat length.toNat).toArray⟩ then 1 else 0) :: rest)
           size' facts' g state substate returnData evm)
 
-/-- The verifier of `PQProofOfPossession` starts at byte 0x132 of its code.
-
-Its caller's memory has 288 bytes. -/
-theorem verifierAt : VerifierAt CODE 0x132 288 VERIFY_FN_GAS := by
-  sorry
-
 end LeanXmssEvmVerifierProofs
