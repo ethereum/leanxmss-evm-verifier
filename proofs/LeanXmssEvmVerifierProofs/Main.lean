@@ -24,10 +24,11 @@ open EthLib.Execution.Evm.Logic
 open EthLib.Execution.State (TransactionState)
 open EthLib.Execution.Blocks.SystemContract (Answer)
 
-/-- The gas of the dispatcher on a proof of possession, from the first byte to the call site.
+/-- The gas of the dispatcher on a proof of possession, from the first byte to the call site: 1,057.
 
 It is the sum of the steps it is proved in: the free memory pointer, the checks of the value and
-the size, the steps to the leaf check, the leaf check, and the hash of `M`. -/
+the size, the steps to the leaf check, the leaf check, the steps to the hash, and the hash of `M`.
+-/
 def DISPATCH_GAS : Nat :=
   18 + 203 + 167 + 163 + 165 + 154 + 12 + 11 + 15 + 149
 
@@ -163,7 +164,7 @@ theorem answers {fork : Fork} (hfork : .fusaka ≤ fork) {message : Message fork
   refine Spec.seq (fromLeaf_152 hfork (by omega)) ?_
   refine Spec.seq (Triple.of_imp fun _ h => known_free h) ?_
   refine Spec.seq (hashMessage hfork (by omega)) ?_
-  refine Triple.seq (verifyBody hfork hs hpk hsig h0 (by omega)) ?_
+  refine Triple.seq (verifyBody hfork hs hpk hsig (by omega)) ?_
   rintro evm ⟨ok, size, facts, g, hok, hsz, hgk, hk⟩
   have hans : popAnswer message = if ok ≠ 0 then some 1 else none := by
     rw [popAnswer_eq hv hs hpk hsig]

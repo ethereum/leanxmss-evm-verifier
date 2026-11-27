@@ -36,7 +36,8 @@ def verifyWords (pkWord messageWord : U256) (signature : ByteArray) : Bool :=
 
 /-- A bound on the gas of the verifier, from its first byte to the jump back: 38,751.
 
-It is the gas of the longest path, where both digests are codewords.
+It bounds the longest path, where both digests are codewords, when the caller's memory has 288
+bytes.
 
 Each chain is charged its most expensive digit, so the bound is loose: a valid signature takes
 about 20,900 gas. -/
@@ -56,18 +57,18 @@ The caller's memory has `size` bytes and holds the free memory pointer 0x80, as 
 contracts.
 
 The caller's stack leaves room for the verifier's, the return address is a JUMPDEST, and the gas
-covers the verifier and `k` more.
+covers `bound`, the verifier's, and `k` more.
 
 The verifier jumps back to `ret` with its answer on the rest of the stack.
 
 Memory then has at least the bytes it had, and holds the free memory pointer again. -/
-def VerifierAt (code : ByteArray) (entry size : Nat) : Prop :=
+def VerifierAt (code : ByteArray) (entry size bound : Nat) : Prop :=
   ∀ {fork : Fork} {message : Message fork} {gas : Nat} {state : TransactionState}
     {substate : Substate} {returnData : ByteArray} {length offset messageWord pkWord ret : U256}
     {rest : List U256} {facts : List (Nat × ByteArray)} {k : Nat},
     .fusaka ≤ fork → offset.toNat + length.toNat < 2 ^ 256 → (64, wordBytes 0x80) ∈ facts →
     rest.length ≤ 900 → isValidJumpDest (validJumpDestinations code) ret.toNat = true →
-    VERIFY_FN_GAS + k ≤ gas →
+    bound + k ≤ gas →
     Hoare fork (Known code message entry (length :: offset :: messageWord :: pkWord :: ret ::
         rest) size facts gas state substate returnData)
       (fun evm => ∃ size' facts' g, size ≤ size' ∧ (64, wordBytes 0x80) ∈ facts' ∧ k ≤ g ∧
@@ -78,7 +79,7 @@ def VerifierAt (code : ByteArray) (entry size : Nat) : Prop :=
 /-- The verifier of `PQProofOfPossession` starts at byte 0x132 of its code.
 
 Its caller's memory has 288 bytes. -/
-theorem verifierAt : VerifierAt CODE 0x132 288 := by
+theorem verifierAt : VerifierAt CODE 0x132 288 VERIFY_FN_GAS := by
   sorry
 
 end LeanXmssEvmVerifierProofs

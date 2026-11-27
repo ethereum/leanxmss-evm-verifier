@@ -28,7 +28,8 @@ variable {fork : Fork} {message : Message fork} {gas : Nat} {state : Transaction
 /-- The gas of the call site: the arguments of the verifier and the jump to it, from byte 218. -/
 def CALL_GAS : Nat := 31
 
-/-- A bound on the gas of the verification, from byte 218, with 40 gas left for the answer. -/
+/-- A bound on the gas of the verification, from byte 218, with 40 gas left for the answer:
+38,822. -/
 def VERIFY_GAS : Nat :=
   CALL_GAS + VERIFY_FN_GAS + 40
 
@@ -40,7 +41,7 @@ Memory then holds at least the 288 bytes it held, and 40 gas are left. -/
 theorem verifyBody (hfork : .fusaka ≤ fork) (hsize : message.data.size = CALLDATA_LENGTH)
     {pk : PublicKey} {sig : Signature}
     (hpk : decodePublicKey (xmssPubkeyOf message.data) = .ok pk)
-    (hsig : decodeSignature (signatureOf message.data) = .ok sig) (hleaf : sig.leafIndex = 0)
+    (hsig : decodeSignature (signatureOf message.data) = .ok sig)
     (hgas : VERIFY_GAS ≤ gas) :
     Hoare fork (Known CODE message 218 [keccak (preimage message), 0, DOMAIN_WORD,
         loadWord message.data 48 32, 2404#256, 80#256, 2484#256, 0] 288 [(64, wordBytes 0x80)]

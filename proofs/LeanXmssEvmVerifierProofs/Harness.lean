@@ -26,9 +26,16 @@ open EthLib.Execution.Evm.Logic
 open EthLib.Execution.State (TransactionState)
 open EthLib.Execution.Blocks.SystemContract (Answer)
 
-/-- A bound on the gas of every path of the harness: the verifier, and 1,000 around it. -/
+/-- A bound on the gas of the harness's verifier: 38,769.
+
+Its caller's memory has 96 bytes, not 288, so its first copy grows memory by 6 more words, which
+cost 18 more gas. -/
+def HARNESS_VERIFY_FN_GAS : Nat :=
+  VERIFY_FN_GAS + 18
+
+/-- A bound on the gas of every path of the harness: its verifier, and 1,000 around it. -/
 def HARNESS_GAS_BOUND : Nat :=
-  VERIFY_FN_GAS + 1000
+  HARNESS_VERIFY_FN_GAS + 1000
 
 /-- What a call of the harness returns: the word 1 when leanXMSS accepts, else the word 0.
 
@@ -42,7 +49,7 @@ def harnessAnswer {fork : Fork} (message : Message fork) : Option U256 :=
 /-- The verifier of the harness is the one of `PQProofOfPossession`, 203 bytes earlier.
 
 Its caller's memory has 96 bytes. -/
-theorem harnessVerifierAt : VerifierAt HARNESS_CODE 0x67 96 := by
+theorem harnessVerifierAt : VerifierAt HARNESS_CODE 0x67 96 HARNESS_VERIFY_FN_GAS := by
   sorry
 
 /-- A call to the harness, from its first byte, answers whether leanXMSS accepts its calldata.
