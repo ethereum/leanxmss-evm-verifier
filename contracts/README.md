@@ -65,7 +65,9 @@ checks the generated one against it on signatures it builds without a secret key
 chain values and siblings, under the root the reference reaches:
 
 - Signatures that verify, at 16 leaf indices and then at random ones, so with other digits each
-  time.
+  time. The fixed ones go over those indices more than once, and together they take every chain
+  at each of its four digits, in both layers, so every branch of the unrolled chains runs on a
+  signature that verifies.
 - Signatures that only the codeword check rejects, where one digest is off by a single bit past
   its 58th digit, or by one in its sum.
 - Changed bits in EthLib's valid cases, and memory that the caller allocated, which `verify` has
