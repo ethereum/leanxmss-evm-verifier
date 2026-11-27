@@ -50,16 +50,41 @@ def topDigits (data : ByteArray) (offset root key : U256) : U256 :=
     (⟨(bufferRead (wordBytes root) 0 16).toArray⟩ ++
       ⟨(bufferRead data (add offset 1204#256).toNat 16).toArray⟩)))
 
+/-- The gas of the verifier on a signature of another length. -/
+def SHORT_GAS : Nat := 63
+
+/-- The gas of the exit of the verifier, from its answer back to its caller. -/
+def EXIT_GAS : Nat := 68
+
+/-- The gas of the verifier from its entry to the bottom codeword test. -/
+def ENTRY_GAS : Nat := 476
+
+/-- The gas of a bottom digest that is not a codeword, back to the caller. -/
+def BOTTOM_REJECT_GAS : Nat := 17 + EXIT_GAS
+
+/-- The gas of a codeword, to the call of the layer function. -/
+def ACCEPT_GAS : Nat := 49
+
+/-- The gas of the top digest, from the bottom root to the top codeword test. -/
+def TOP_ENTRY_GAS : Nat := 283
+
+/-- The gas of a top digest that is not a codeword, back to the caller. -/
+def TOP_REJECT_GAS : Nat := 20 + EXIT_GAS
+
+/-- The gas of the compare of the top root with the key, back to the caller. -/
+def COMPARE_GAS : Nat := 32 + EXIT_GAS
+
 /-- A signature of another length than 2404 bytes: the verifier answers 0 at once. -/
 theorem verifyShort (hfork : .fusaka ≤ fork) {length offset msg pk ret : U256} {rest : List U256}
     {size : Nat} {facts : List (Nat × ByteArray)} {gas k : Nat} (hrest : rest.length ≤ 900)
     (hlen : equal length 2404#256 = 0)
     (hret : isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)
-    (hgas : 63 + k ≤ gas) :
+    (hgas : SHORT_GAS + k ≤ gas) :
     Hoare fork (Known CODE message 0x132 (length :: offset :: msg :: pk :: ret :: rest) size facts
         gas state substate returnData)
       (fun evm => ∃ g, k ≤ g ∧ Known CODE message ret.toNat (0 :: rest) size facts g state
         substate returnData evm) := by
+  unfold SHORT_GAS at hgas
   -- The jump test of the return address is hidden from `assumption`, which would unfold it.
   obtain hr : Nonempty (PLift (isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)) :=
     ⟨⟨hret⟩⟩
@@ -93,11 +118,12 @@ The free memory pointer is 0x80, so there is nothing to copy back above it. -/
 theorem verifyExit {a₁ a₂ a₃ a₄ a₅ v length offset msg pk ret : U256} {rest : List U256}
     {facts : List (Nat × ByteArray)} {gas k : Nat} (hrest : rest.length ≤ 900)
     (hret : isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)
-    (hgas : 68 + k ≤ gas) :
+    (hgas : EXIT_GAS + k ≤ gas) :
     Hoare fork (Known CODE message 0x36a6 (a₁ :: a₂ :: a₃ :: a₄ :: a₅ :: 128 :: 128 :: v ::
         length :: offset :: msg :: pk :: ret :: rest) 1536 facts gas state substate returnData)
       (fun evm => ∃ g, k ≤ g ∧ Known CODE message ret.toNat (v :: rest) 1536
         ((64, wordBytes 0x80) :: keep 64 32 facts) g state substate returnData evm) := by
+  unfold EXIT_GAS at hgas
   -- The jump test of the return address is hidden from `assumption`, which would unfold it.
   obtain hr : Nonempty (PLift (isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)) :=
     ⟨⟨hret⟩⟩
@@ -136,7 +162,7 @@ The free memory pointer is 0x80, so there is nothing to save above it.
 
 The signature past its index is copied to 0x140, and the head of the digest is written at 0. -/
 theorem verifyEntry (hfork : .fusaka ≤ fork) {offset msg pk ret : U256} {rest : List U256}
-    {gas k : Nat} (hrest : rest.length ≤ 900) (hgas : 476 + k ≤ gas) :
+    {gas k : Nat} (hrest : rest.length ≤ 900) (hgas : ENTRY_GAS + k ≤ gas) :
     Hoare fork (Known CODE message 0x132 (2404#256 :: offset :: msg :: pk :: ret :: rest) 288
         [(64, wordBytes 0x80)] gas state substate returnData)
       (fun evm => ∃ g, k ≤ g ∧ Known CODE message 0x148
@@ -151,6 +177,7 @@ theorem verifyEntry (hfork : .fusaka ≤ fork) {offset msg pk ret : U256} {rest 
           (0, wordBytes (digestHead (keyIndex pk (leafWord message.data offset.toNat)))),
           (320, ⟨(bufferRead message.data (add offset 4#256).toNat 1200).toArray⟩)]
         g state substate returnData evm) := by
+  unfold ENTRY_GAS at hgas
   lx_stepC
   lx_stepC
   lx_stepC
@@ -218,22 +245,23 @@ theorem verifyEntry (hfork : .fusaka ≤ fork) {offset msg pk ret : U256} {rest 
 theorem bottomReject {c D key index keyLow length offset msg pk ret : U256} {rest : List U256}
     {facts : List (Nat × ByteArray)} {gas k : Nat} (hrest : rest.length ≤ 900)
     (hret : isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)
-    (hc : isZero c ≠ 0) (hgas : 85 + k ≤ gas) :
+    (hc : isZero c ≠ 0) (hgas : BOTTOM_REJECT_GAS + k ≤ gas) :
     Hoare fork (Known CODE message 0x35ff (c :: D :: key :: index :: keyLow :: offset :: 128 ::
         128 :: 0 :: length :: offset :: msg :: pk :: ret :: rest) 1536 facts gas state substate
         returnData)
       (fun evm => ∃ g, k ≤ g ∧ Known CODE message ret.toNat (0 :: rest) 1536
         ((64, wordBytes 0x80) :: keep 64 32 facts) g state substate returnData evm) := by
+  unfold BOTTOM_REJECT_GAS EXIT_GAS at hgas
   lx_stepC
   lx_stepC
   lx_stepC
   lx_stepC
-  exact verifyExit hrest hret (by omega)
+  exact verifyExit hrest hret (by unfold EXIT_GAS; omega)
 
 /-- The bottom codeword test passed: the verifier calls the layer function on the bottom layer. -/
 theorem bottomAccept {c D key index keyLow length offset msg pk ret : U256} {rest : List U256}
     {size : Nat} {facts : List (Nat × ByteArray)} {gas k : Nat} (hrest : rest.length ≤ 900)
-    (hc : isZero c = 0) (hgas : 49 + k ≤ gas) :
+    (hc : isZero c = 0) (hgas : ACCEPT_GAS + k ≤ gas) :
     Hoare fork (Known CODE message 0x35ff (c :: D :: key :: index :: keyLow :: offset :: 128 ::
         128 :: 0 :: length :: offset :: msg :: pk :: ret :: rest) size facts gas state substate
         returnData)
@@ -241,6 +269,7 @@ theorem bottomAccept {c D key index keyLow length offset msg pk ret : U256} {res
         bitwiseOr keyLow 0x30000000000000000#256 :: index :: D :: 0x361b :: D :: key :: index ::
         keyLow :: offset :: 128 :: 128 :: 0 :: length :: offset :: msg :: pk :: ret :: rest) size
         facts g state substate returnData evm) := by
+  unfold ACCEPT_GAS at hgas
   lx_stepC
   lx_stepC
   lx_stepC
@@ -258,7 +287,7 @@ theorem bottomAccept {c D key index keyLow length offset msg pk ret : U256} {res
 
 /-- The bottom layer returned its root: the verifier hashes the top digest and calls the test. -/
 theorem topEntry (hfork : .fusaka ≤ fork) {R D key index keyLow length offset msg pk ret : U256}
-    {rest : List U256} {gas k : Nat} (hrest : rest.length ≤ 900) (hgas : 283 + k ≤ gas) :
+    {rest : List U256} {gas k : Nat} (hrest : rest.length ≤ 900) (hgas : TOP_ENTRY_GAS + k ≤ gas) :
     Hoare fork (Known CODE message 0x361b (R :: D :: key :: index :: keyLow :: offset :: 128 ::
         128 :: 0 :: length :: offset :: msg :: pk :: ret :: rest) 1536 [] gas state substate
         returnData)
@@ -272,6 +301,7 @@ theorem topEntry (hfork : .fusaka ≤ fork) {R D key index keyLow length offset 
           (0, wordBytes (digestHead (topKey keyLow (topIndex index)))),
           (320, ⟨(bufferRead message.data (add offset 1204#256).toNat 1200).toArray⟩)]
         g state substate returnData evm) := by
+  unfold TOP_ENTRY_GAS at hgas
   lx_stepC
   lx_stepC
   lx_stepC
@@ -322,24 +352,25 @@ theorem topEntry (hfork : .fusaka ≤ fork) {R D key index keyLow length offset 
 theorem topReject {c R D key index keyLow length offset msg pk ret : U256} {rest : List U256}
     {facts : List (Nat × ByteArray)} {gas k : Nat} (hrest : rest.length ≤ 900)
     (hret : isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)
-    (hc : isZero c ≠ 0) (hgas : 88 + k ≤ gas) :
+    (hc : isZero c ≠ 0) (hgas : TOP_REJECT_GAS + k ≤ gas) :
     Hoare fork (Known CODE message 0x367b (c :: R :: D :: key :: index :: keyLow :: offset ::
         128 :: 128 :: 0 :: length :: offset :: msg :: pk :: ret :: rest) 1536 facts gas state
         substate returnData)
       (fun evm => ∃ g, k ≤ g ∧ Known CODE message ret.toNat (0 :: rest) 1536
         ((64, wordBytes 0x80) :: keep 64 32 facts) g state substate returnData evm) := by
+  unfold TOP_REJECT_GAS EXIT_GAS at hgas
   lx_stepC
   lx_stepC
   lx_stepC
   lx_stepC
   lx_stepC
   lx_stepC
-  exact verifyExit hrest hret (by omega)
+  exact verifyExit hrest hret (by unfold EXIT_GAS; omega)
 
 /-- The top codeword test passed: the verifier calls the layer function on the top layer. -/
 theorem topAccept {c R D key index keyLow length offset msg pk ret : U256} {rest : List U256}
     {size : Nat} {facts : List (Nat × ByteArray)} {gas k : Nat} (hrest : rest.length ≤ 900)
-    (hc : isZero c = 0) (hgas : 49 + k ≤ gas) :
+    (hc : isZero c = 0) (hgas : ACCEPT_GAS + k ≤ gas) :
     Hoare fork (Known CODE message 0x367b (c :: R :: D :: key :: index :: keyLow :: offset ::
         128 :: 128 :: 0 :: length :: offset :: msg :: pk :: ret :: rest) size facts gas state
         substate returnData)
@@ -347,6 +378,7 @@ theorem topAccept {c R D key index keyLow length offset msg pk ret : U256} {rest
         bitwiseOr keyLow 0x80030000000000000000#256 :: index :: D :: 0x3698 :: R :: D :: key ::
         index :: keyLow :: offset :: 128 :: 128 :: 0 :: length :: offset :: msg :: pk :: ret ::
         rest) size facts g state substate returnData evm) := by
+  unfold ACCEPT_GAS at hgas
   lx_stepC
   lx_stepC
   lx_stepC
@@ -367,13 +399,14 @@ theorem topCompare (hfork : .fusaka ≤ fork)
     {R' R D key index keyLow length offset msg pk ret : U256} {rest : List U256}
     {facts : List (Nat × ByteArray)} {gas k : Nat} (hrest : rest.length ≤ 900)
     (hret : isValidJumpDest (validJumpDestinations CODE) ret.toNat = true)
-    (hgas : 100 + k ≤ gas) :
+    (hgas : COMPARE_GAS + k ≤ gas) :
     Hoare fork (Known CODE message 0x3698 (R' :: R :: D :: key :: index :: keyLow :: offset ::
         128 :: 128 :: 0 :: length :: offset :: msg :: pk :: ret :: rest) 1536 facts gas state
         substate returnData)
       (fun evm => ∃ g, k ≤ g ∧ Known CODE message ret.toNat
         (isZero (bitwiseShr 128#256 (bitwiseXor R' pk)) :: rest) 1536
         ((64, wordBytes 0x80) :: keep 64 32 facts) g state substate returnData evm) := by
+  unfold COMPARE_GAS EXIT_GAS at hgas
   lx_stepC
   lx_stepC
   lx_stepC
@@ -387,6 +420,6 @@ theorem topCompare (hfork : .fusaka ≤ fork)
   lx_stepC
   lx_stepC
   lx_stepC
-  exact verifyExit hrest hret (by omega)
+  exact verifyExit hrest hret (by unfold EXIT_GAS; omega)
 
 end LeanXmssEvmVerifierProofs
