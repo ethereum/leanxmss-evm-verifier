@@ -10,7 +10,7 @@ The EVM semantics, its program logic and leanXMSS come from EthLib, at the commi
 package «LeanXmssEvmVerifierProofs»
 
 -- EthLib, which fixes the Lean toolchain and Mathlib.
-require «EthLib» from git "https://github.com/ethereum/EthLib" @ "af0d404b3236ef699d711053f89e371828bb572e"
+require «EthLib» from git "https://github.com/ethereum/EthLib" @ "0c79db8b93f29ceb3fb3b833d7e4933f4396b1c3"
 
 @[default_target]
 lean_lib «LeanXmssEvmVerifierProofs» where
