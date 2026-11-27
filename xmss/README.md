@@ -51,6 +51,7 @@ same message, as in EIP-8450, and one proof registers the key for both.
 
 ```sh
 ./sync-vectors.sh <ethlib-commit>   # copies EthLib's cases at that commit and records it
+./sync-vectors.sh --check           # checks the copy against the commit recorded (CI runs it)
 cargo run --release                 # ~30 s on 16 cores
 ```
 
