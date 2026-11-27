@@ -11,9 +11,6 @@ ROOT = Path(__file__).resolve().parents[2]
 ARTIFACT = ROOT / "contracts/out/PQProofOfPossession.sol/PQProofOfPossession.json"
 OUTPUT = ROOT / "proofs/LeanXmssEvmVerifierProofs/Code.lean"
 
-# Bytes per line of the number: 40 bytes are 80 hex digits, which fit in 100 columns.
-CHUNK = 40
-
 HEADER = """\
 module
 
@@ -51,20 +48,14 @@ def render(code: bytes) -> str:
     """The Lean file of a runtime bytecode."""
     digest = hashlib.sha256(code).hexdigest()
     size = len(code)
-    terms = []
-    for start in range(0, size, CHUNK):
-        chunk = code[start : start + CHUNK]
-        shift = size - start - len(chunk)
-        term = f"0x{chunk.hex()}"
-        terms.append(f"{term} * 256 ^ {shift}" if shift else term)
-    body = " +\n  ".join(terms)
     return (
         HEADER
         + f"/-- The size of the code: {size} bytes. -/\n"
         + f"def CODE_SIZE : Nat := {size}\n\n"
-        + "/-- The code as one number, the first byte highest, in runs of 40 bytes.\n\n"
+        + "/-- The code as one number, the first byte highest.\n\n"
+        + "It is one literal on one line, which Lean elaborates at once.\n\n"
         + f"The SHA-256 of its bytes is `{digest}`. -/\n"
-        + f"def CODE_NUMBER : Nat :=\n  {body}\n\n"
+        + f"def CODE_NUMBER : Nat :=\n  0x{code.hex()}\n\n"
         + "/-- The runtime bytecode of `PQProofOfPossession`. -/\n"
         + "def CODE : ByteArray := NatCode.ofNat CODE_NUMBER CODE_SIZE\n\n"
         + "end LeanXmssEvmVerifierProofs\n"

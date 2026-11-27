@@ -1,3 +1,4 @@
 module
 
+public import LeanXmssEvmVerifierProofs.Dispatch
 public import LeanXmssEvmVerifierProofs.Main

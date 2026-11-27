@@ -22,6 +22,7 @@ namespace LeanXmssEvmVerifierProofs
 open EthLib.Base (Fork U256)
 open EthLib.Execution.Evm
 open EthLib.Execution.Evm.Logic
+open EthLib.Execution.State (TransactionState)
 open EthLib.Execution.Blocks.SystemContract (Answer)
 
 /-- A bound on the gas of every path of the code.
@@ -40,15 +41,15 @@ noncomputable def popAnswer {fork : Fork} (message : Message fork) : Option U256
 
 /-- A call to the code, from its first byte, answers whether its calldata is a proof of possession.
 
-It holds at every fork from Osaka, the fork the code is compiled for.
+It holds at every fork from Fusaka, whose execution layer is Osaka, the target of the compiler.
 
 From Glamsterdam, the frame is a one-counter model of the meter of EIP-8037.
 
 It holds for every caller, every value, every calldata, and a static call as well.
 
 It holds whatever code the message names: the frame runs the code it is given. -/
-theorem answers {fork : Fork} (hfork : .osaka ≤ fork) {message : Message fork} {gas : Nat}
-    {state : State.TransactionState} {substate : Substate} {returnData : ByteArray}
+theorem answers {fork : Fork} (hfork : .fusaka ≤ fork) {message : Message fork} {gas : Nat}
+    {state : TransactionState} {substate : Substate} {returnData : ByteArray}
     (hgas : GAS_BOUND ≤ gas) :
     Spec fork (At CODE message 0 [] .empty gas state substate returnData) fun evm =>
       -- The frame stops with the word 1, or reverts with no output, and keeps the state.
