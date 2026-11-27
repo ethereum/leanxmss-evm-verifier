@@ -13,9 +13,9 @@ import {LeanXmssVectors} from "./helpers/LeanXmssVectors.sol";
 /// the chain values and the siblings are random, and the public key has the root the reference
 /// reaches. What costs is the randomizers. A layer's digest has to be a codeword, about one
 /// digest in a million is one, and so finding a randomizer takes about 150M gas. The tests on
-/// fixed cases have the randomizers they found before, as the counters in `validCounters`,
-/// `closeCounters` and `armCounters`. The fuzz tests search for theirs, so they run twice by
-/// default and 250 times with `FOUNDRY_PROFILE=deep`.
+/// fixed cases have the randomizers they found before, as the counters in `validCounters` and
+/// `closeCounters`. The fuzz tests search for theirs, so they run twice by default and 250 times
+/// with `FOUNDRY_PROFILE=deep`.
 contract LeanXmssReferenceTest is Test {
     uint256 internal constant SIGNATURE_LENGTH = 2404;
     uint256 internal constant TOP_LAYER = 1204;
@@ -24,8 +24,8 @@ contract LeanXmssReferenceTest is Test {
     uint256 internal constant ANY_BIT = 0x10000;
     /// The leaf index of the odd cases of `closeCase`.
     uint32 internal constant SOME_LEAF = 0x9e3779b9;
-    /// The salt of the signature of `test_VerifiesEveryChainArm`.
-    uint256 internal constant ARMS_SALT = 22;
+    /// How many signatures `test_VerifiesWhatTheReferenceDoes` builds.
+    uint256 internal constant VALID = 48;
 
     /// How many randomizers a search tries. A try takes about 160 gas, so the two searches of a
     /// signature take at most 800M of the 1,073M a test has. One search in ten gives up.
@@ -35,7 +35,7 @@ contract LeanXmssReferenceTest is Test {
     /// address word `first`, with the randomizers from `from` up to `to`. `past` is what it has
     /// in the twelve bits past its 58th digit, read as a big-endian number, or `ANY_BIT`. Its 64
     /// digits sum to `sum`, or to anything else when `equal` is false. With `past` zero and a sum
-    /// of 106 it is a codeword. Its bits under `mask` are those of `digits`, which `pin` writes.
+    /// of 106 it is a codeword.
     struct Search {
         bytes32 first;
         bytes32 signed;
@@ -45,8 +45,6 @@ contract LeanXmssReferenceTest is Test {
         bool equal;
         uint256 from;
         uint256 to;
-        uint256 mask;
-        uint256 digits;
     }
 
     /// A digest that isn't a codeword and is close to one, in the layer `bottom` says, of a
@@ -87,25 +85,30 @@ contract LeanXmssReferenceTest is Test {
     /// Both verifiers accept a signature built at each of these leaf indices, and agree on copies
     /// of it. The indices have zero and nonzero bytes in every place, and between `0x5a5a5a5a` and
     /// `0xa5a5a5a5` every node of both paths is once a left child and once a right one.
+    ///
+    /// The `VALID` signatures go over the indices more than once, with other digits each time,
+    /// and together they take every arm: each of the 58 chains at each of the four digits, in
+    /// both layers. The unrolled verifier has its own code for each chain, which branches on the
+    /// digit, so every branch runs on a signature that verifies, whatever the other test vectors
+    /// are. If a change to how the signatures are built leaves an arm out, raise `VALID` and
+    /// print the counters again.
     function test_VerifiesWhatTheReferenceDoes() public view {
         uint32[16] memory indices = leaves();
-        uint32[2][16] memory counters = validCounters();
-        for (uint256 i; i < indices.length; i++) {
-            (uint32[2] memory used, bytes32 key, bytes32 message, bytes memory sig) =
-                signatureAt(indices[i], indices[i], counters[i]);
+        uint32[2][VALID] memory counters = validCounters();
+        bool[4][58][2] memory taken;
+        for (uint256 i; i < VALID; i++) {
+            (
+                uint32[2] memory used,
+                bytes32 key,
+                bytes32 message,
+                bytes memory sig,
+                uint256[2] memory digests
+            ) = signatureAt(indices[i % indices.length], i, counters[i]);
             assertEq(used[1], counters[i][1]);
-            check(key, message, sig, indices[i]);
+            check(key, message, sig, i);
+            take(taken, digests);
         }
-    }
-
-    /// Both verifiers accept a signature at leaf zero whose digits take the arms of a chain that
-    /// the other fixed cases leave out: chain 22 at digit 1 in both layers, chains 9 and 27 at
-    /// digit 0 in the bottom one, and chain 19 at digit 0 in the top one.
-    function test_VerifiesEveryChainArm() public view {
-        (uint32[2] memory used, bytes32 key, bytes32 message, bytes memory sig) =
-            signatureAt(0, ARMS_SALT, armPins(), armCounters());
-        assertEq(used[1], armCounters()[1]);
-        check(key, message, sig, ARMS_SALT);
+        assertEveryArm(taken);
     }
 
     /// forge-config: default.fuzz.runs = 2
@@ -120,7 +123,7 @@ contract LeanXmssReferenceTest is Test {
         if (shape % 4 == 0) leaf = 0;
         if (shape % 4 == 1) leaf &= 0xffff;
         if (shape % 4 == 2) leaf &= 0xffff0000;
-        (uint32[2] memory used, bytes32 key, bytes32 message, bytes memory sig) =
+        (uint32[2] memory used, bytes32 key, bytes32 message, bytes memory sig,) =
             signatureAt(leaf, salt, [uint32(0), 0]);
         vm.assume(used[1] != 0);
         check(key, message, sig, salt);
@@ -240,13 +243,13 @@ contract LeanXmssReferenceTest is Test {
 
         Search memory s = digestOf(key, 0, c.leaf, message, 32);
         if (c.bottom) (s.past, s.sum, s.equal) = (c.past, c.sum, c.equal);
-        used[0] = find(s, counters[0]);
+        (used[0],) = find(s, counters[0]);
         if (used[0] == 0) return [uint32(0), 0];
         write16(sig, 4, bytes16(uint128(used[0])));
         (, bytes16 bottom,,) = referenceHarness.roots(key, message, sig);
         s = digestOf(key, 1, c.leaf >> 16, bottom, 16);
         if (!c.bottom) (s.past, s.sum, s.equal) = (c.past, c.sum, c.equal);
-        used[1] = find(s, counters[1]);
+        (used[1],) = find(s, counters[1]);
         if (used[1] == 0) return [uint32(0), 0];
         write16(sig, TOP_LAYER, bytes16(uint128(used[1])));
 
@@ -300,27 +303,17 @@ contract LeanXmssReferenceTest is Test {
 
     /// A public key, a message and a signature at `leaf` that verifies, from `salt`. `counters`
     /// has its two randomizers, or zeros to search for them. Returns the ones used, the second
-    /// one zero when a search gave up.
+    /// one zero when a search gave up, and the digests of the bottom and of the top layer.
     function signatureAt(uint32 leaf, uint256 salt, uint32[2] memory counters)
         internal
         view
-        returns (uint32[2] memory used, bytes32 key, bytes32 message, bytes memory sig)
-    {
-        uint256[2][2] memory none;
-        return signatureAt(leaf, salt, none, counters);
-    }
-
-    /// The same, with the digits of each layer's digest pinned: `pins[layer]` is the mask and the
-    /// digits of `Search`.
-    function signatureAt(
-        uint32 leaf,
-        uint256 salt,
-        uint256[2][2] memory pins,
-        uint32[2] memory counters
-    )
-        internal
-        view
-        returns (uint32[2] memory used, bytes32 key, bytes32 message, bytes memory sig)
+        returns (
+            uint32[2] memory used,
+            bytes32 key,
+            bytes32 message,
+            bytes memory sig,
+            uint256[2] memory digests
+        )
     {
         sig = new bytes(SIGNATURE_LENGTH);
         fill(sig, 0, SIGNATURE_LENGTH, bytes32(salt));
@@ -328,17 +321,13 @@ contract LeanXmssReferenceTest is Test {
         key = keccak256(abi.encode(salt, "key"));
         message = keccak256(abi.encode(salt, "message"));
 
-        Search memory s = digestOf(key, 0, leaf, message, 32);
-        (s.mask, s.digits) = (pins[0][0], pins[0][1]);
-        used[0] = find(s, counters[0]);
-        if (used[0] == 0) return (used, key, message, sig);
+        (used[0], digests[0]) = find(digestOf(key, 0, leaf, message, 32), counters[0]);
+        if (used[0] == 0) return (used, key, message, sig, digests);
         write16(sig, 4, bytes16(uint128(used[0])));
         (bool valid, bytes16 bottom) = referenceHarness.bottomRoot(key, message, sig);
         assertTrue(valid);
-        s = digestOf(key, 1, leaf >> 16, bottom, 16);
-        (s.mask, s.digits) = (pins[1][0], pins[1][1]);
-        used[1] = find(s, counters[1]);
-        if (used[1] == 0) return (used, key, message, sig);
+        (used[1], digests[1]) = find(digestOf(key, 1, leaf >> 16, bottom, 16), counters[1]);
+        if (used[1] == 0) return (used, key, message, sig, digests);
         write16(sig, TOP_LAYER, bytes16(uint128(used[1])));
         bytes16 top;
         (valid, top) = referenceHarness.root(key, message, sig);
@@ -382,30 +371,55 @@ contract LeanXmssReferenceTest is Test {
         (s.signed, s.len, s.sum, s.equal) = (signed, len, 106, true);
     }
 
-    /// Adds to `p` the mask and the digits that pin chain `chain` of a digest to `digit`. The
-    /// digest is read as a big-endian number, as `search` does, so the digit is at bit
-    /// `120 - 8 * (chain / 4) + 2 * (chain % 4)`.
-    function pin(uint256[2] memory p, uint256 chain, uint256 digit) internal pure {
-        uint256 bit = 120 - 8 * (chain / 4) + 2 * (chain % 4);
-        p[0] |= 3 << bit;
-        p[1] |= digit << bit;
+    /// Marks in `taken` the digit that each chain has in the digest of each layer. A digest is
+    /// the big-endian number `search` reads, so chain `i` has its digit at bit
+    /// `120 - 8 * (i / 4) + 2 * (i % 4)`.
+    function take(bool[4][58][2] memory taken, uint256[2] memory digests) internal pure {
+        for (uint256 layer; layer < 2; layer++) {
+            for (uint256 i; i < 58; i++) {
+                taken[layer][i][(digests[layer] >> (120 - 8 * (i / 4) + 2 * (i % 4))) & 3] = true;
+            }
+        }
     }
 
-    /// The counter of a randomizer that gives the digest `s` asks for. It is `known` when that
-    /// isn't zero, after checking that it does. Otherwise it's the first one found, or zero.
-    function find(Search memory s, uint32 known) internal view returns (uint32) {
+    /// Fails unless `taken` has every digit of every chain of both layers.
+    function assertEveryArm(bool[4][58][2] memory taken) internal pure {
+        for (uint256 layer; layer < 2; layer++) {
+            for (uint256 chain; chain < 58; chain++) {
+                for (uint256 digit; digit < 4; digit++) {
+                    if (taken[layer][chain][digit]) continue;
+                    revert(
+                        string.concat(
+                            "no signature has digit ",
+                            vm.toString(digit),
+                            " at chain ",
+                            vm.toString(chain),
+                            layer == 0 ? " of the bottom layer" : " of the top layer"
+                        )
+                    );
+                }
+            }
+        }
+    }
+
+    /// The counter of a randomizer that gives the digest `s` asks for, and that digest. The
+    /// counter is `known` when that isn't zero, after checking that it does. Otherwise it's the
+    /// first one found, or zero.
+    function find(Search memory s, uint32 known) internal view returns (uint32, uint256) {
         if (known != 0) {
             (s.from, s.to) = (known, uint256(known) + 1);
-            assertEq(search(s), known);
-            return known;
+            (uint32 found, uint256 digest) = search(s);
+            assertEq(found, known);
+            return (found, digest);
         }
         (s.from, s.to) = (1, tries);
         return search(s);
     }
 
-    /// The first counter from `s.from` up to `s.to` that gives the digest `s` asks for, or zero.
-    /// The randomizer is the counter as a 16-byte number.
-    function search(Search memory s) internal pure returns (uint32 found) {
+    /// The first counter from `s.from` up to `s.to` that gives the digest `s` asks for, or zero,
+    /// and that digest as the big-endian number its 16 bytes read as. The randomizer is the
+    /// counter as a 16-byte number.
+    function search(Search memory s) internal pure returns (uint32 found, uint256 digest) {
         assembly ("memory-safe") {
             let mem := mload(0x40)
             mstore(mem, mload(s))
@@ -427,7 +441,6 @@ contract LeanXmssReferenceTest is Test {
                 mstore(slot, shl(128, i))
                 let d := shr(128, keccak256(mem, size))
                 if xor(and(d, mask), past) { continue }
-                if xor(and(d, mload(add(s, 0x100))), mload(add(s, 0x120))) { continue }
                 if any { if iszero(and(d, 0xf0ff)) { continue } }
                 let total := 0
                 for { let k := 0 } lt(k, 128) { k := add(k, 2) } {
@@ -435,6 +448,7 @@ contract LeanXmssReferenceTest is Test {
                 }
                 if eq(eq(total, mload(add(s, 0x80))), mload(add(s, 0xa0))) {
                     found := i
+                    digest := d
                     break
                 }
             }
@@ -465,23 +479,26 @@ contract LeanXmssReferenceTest is Test {
         ];
     }
 
-    /// Prints `validCounters`, `closeCounters` and `armCounters`, after a change to how the
-    /// signatures are built. It takes a minute and more gas than a test has:
+    /// Prints `validCounters` and `closeCounters`, after a change to how the signatures are
+    /// built, and fails if the signatures it printed leave an arm out. It takes two minutes and
+    /// about 26B gas, which is more than a test has:
     ///   LEANXMSS_COUNTERS=true FOUNDRY_GAS_LIMIT=100000000000 \
     ///     forge test --match-test test_PrintCounters -vv
     function test_PrintCounters() public {
         vm.skip(!vm.envOr("LEANXMSS_COUNTERS", false));
         tries = type(uint32).max;
         uint32[16] memory indices = leaves();
-        for (uint256 i; i < indices.length; i++) {
-            (uint32[2] memory used,,,) = signatureAt(indices[i], indices[i], [uint32(0), 0]);
+        bool[4][58][2] memory taken;
+        for (uint256 i; i < VALID; i++) {
+            (uint32[2] memory used,,,, uint256[2] memory digests) =
+                signatureAt(indices[i % indices.length], i, [uint32(0), 0]);
             emit log_string(row("valid", used));
+            take(taken, digests);
         }
         for (uint256 i; i < 32; i++) {
             emit log_string(row("close", checkClose(closeCase(i), i, [uint32(0), 0])));
         }
-        (uint32[2] memory arms,,,) = signatureAt(0, ARMS_SALT, armPins(), [uint32(0), 0]);
-        emit log_string(row("arms", arms));
+        assertEveryArm(taken);
     }
 
     function row(string memory table, uint32[2] memory used) internal pure returns (string memory) {
@@ -493,39 +510,57 @@ contract LeanXmssReferenceTest is Test {
 
     /// The counters of the bottom and of the top randomizer of each signature of
     /// `test_VerifiesWhatTheReferenceDoes`.
-    function validCounters() internal pure returns (uint32[2][16] memory) {
+    function validCounters() internal pure returns (uint32[2][VALID] memory) {
         return [
             [uint32(2695084), 343541],
             [uint32(2138992), 401684],
-            [uint32(64870), 2508557],
-            [uint32(188091), 734103],
-            [uint32(50834), 964293],
-            [uint32(739169), 881888],
-            [uint32(164878), 171988],
-            [uint32(1034421), 308775],
-            [uint32(455059), 775331],
-            [uint32(147433), 758337],
-            [uint32(122793), 373665],
-            [uint32(682812), 1623417],
-            [uint32(1500104), 1664988],
-            [uint32(2570454), 114418],
-            [uint32(985726), 910735],
-            [uint32(6364663), 1011631]
+            [uint32(2280669), 1054436],
+            [uint32(610365), 957511],
+            [uint32(203619), 665112],
+            [uint32(1353864), 1288234],
+            [uint32(458914), 243415],
+            [uint32(135144), 487793],
+            [uint32(598072), 3094723],
+            [uint32(850033), 1996667],
+            [uint32(38733), 1819827],
+            [uint32(1716288), 518304],
+            [uint32(173373), 1657026],
+            [uint32(571788), 718385],
+            [uint32(128256), 360633],
+            [uint32(662423), 68698],
+            [uint32(664093), 244996],
+            [uint32(317582), 12139],
+            [uint32(1794503), 940909],
+            [uint32(330930), 1435973],
+            [uint32(4021564), 554705],
+            [uint32(3183805), 814670],
+            [uint32(619947), 48576],
+            [uint32(626114), 1376977],
+            [uint32(2825853), 1947525],
+            [uint32(746984), 2572609],
+            [uint32(1049018), 261872],
+            [uint32(825878), 1335977],
+            [uint32(1588021), 472364],
+            [uint32(1911069), 2217210],
+            [uint32(3696912), 1392159],
+            [uint32(173151), 239022],
+            [uint32(456565), 535268],
+            [uint32(2997979), 249573],
+            [uint32(1288401), 2522230],
+            [uint32(2898057), 656628],
+            [uint32(65240), 270264],
+            [uint32(2155557), 5492],
+            [uint32(1475934), 2316022],
+            [uint32(1645798), 1244858],
+            [uint32(1557027), 2608737],
+            [uint32(897959), 2339476],
+            [uint32(766890), 867627],
+            [uint32(559600), 344280],
+            [uint32(1815781), 628991],
+            [uint32(624254), 80368],
+            [uint32(51928), 1661229],
+            [uint32(137895), 259966]
         ];
-    }
-
-    /// The digits that `test_VerifiesEveryChainArm` pins in the bottom and in the top layer.
-    function armPins() internal pure returns (uint256[2][2] memory pins) {
-        pin(pins[0], 22, 1);
-        pin(pins[0], 9, 0);
-        pin(pins[0], 27, 0);
-        pin(pins[1], 22, 1);
-        pin(pins[1], 19, 0);
-    }
-
-    /// The counters of the signature of `test_VerifiesEveryChainArm`.
-    function armCounters() internal pure returns (uint32[2] memory) {
-        return [uint32(94001324), 9926963];
     }
 
     /// The same for each case of `test_RejectsADigestThatIsNotACodeword`.
