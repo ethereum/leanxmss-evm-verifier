@@ -32,8 +32,14 @@ theorem getLsbD_swap32 {le : U256} (hle : le.toNat < 2 ^ 32) (j : Nat) (hj : j <
     exact Nat.lt_of_lt_of_le hle (Nat.pow_le_pow_right (by decide) hk)
   simp only [swap32, bitwiseShl, bitwiseShr, BitVec.toNat_ofNat]
   -- One case per bit of the word.
-  rcases (show j = 0 ∨ j = 1 ∨ j = 2 ∨ j = 3 ∨ j = 4 ∨ j = 5 ∨ j = 6 ∨ j = 7 ∨ j = 8 ∨ j = 9 ∨ j = 10 ∨ j = 11 ∨ j = 12 ∨ j = 13 ∨ j = 14 ∨ j = 15 ∨ j = 16 ∨ j = 17 ∨ j = 18 ∨ j = 19 ∨ j = 20 ∨ j = 21 ∨ j = 22 ∨ j = 23 ∨ j = 24 ∨ j = 25 ∨ j = 26 ∨ j = 27 ∨ j = 28 ∨ j = 29 ∨ j = 30 ∨ j = 31 by omega) with
-    rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl|rfl <;>
+  rcases (show
+    j = 0 ∨ j = 1 ∨ j = 2 ∨ j = 3 ∨ j = 4 ∨ j = 5 ∨ j = 6 ∨ j = 7 ∨ j = 8 ∨ j = 9 ∨ j = 10 ∨
+      j = 11 ∨ j = 12 ∨ j = 13 ∨ j = 14 ∨ j = 15 ∨ j = 16 ∨ j = 17 ∨ j = 18 ∨ j = 19 ∨ j = 20 ∨
+      j = 21 ∨ j = 22 ∨ j = 23 ∨ j = 24 ∨ j = 25 ∨ j = 26 ∨ j = 27 ∨ j = 28 ∨ j = 29 ∨ j = 30 ∨
+      j = 31 by omega) with
+      rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl |
+      rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl |
+      rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl | rfl <;>
   simp [high]
 
 /-- The swap of a word below `2 ^ 32` is zero exactly when the word is. -/
@@ -58,7 +64,8 @@ theorem toNat_shr_loadWord (data : ByteArray) :
       ((EthLib.Base.byteAtOrZero data 80).toNat * 256 + (EthLib.Base.byteAtOrZero data 81).toNat) *
         65536 + (EthLib.Base.byteAtOrZero data 82).toNat * 256 +
         (EthLib.Base.byteAtOrZero data 83).toNat := by
-  have hsplit : List.range 32 = List.range 4 ++ (List.range 28).map (4 + ·) := List.range_add (n := 4) (m := 28)
+  have hsplit : List.range 32 = List.range 4 ++ (List.range 28).map (4 + ·) :=
+    List.range_add (n := 4) (m := 28)
   have hrest := EthLib.Base.ByteOrder.ofBE_lt
     ((List.range 28).map fun i => EthLib.Base.byteAtOrZero data (80 + (4 + i)))
   simp only [List.length_map, List.length_range] at hrest
@@ -92,7 +99,8 @@ theorem toNat_leafIndex {data : ByteArray} (hsize : data.size = CALLDATA_LENGTH)
       (EthLib.Base.byteAtOrZero data 83).toNat * 16777216 := by
   have hs : (signatureOf data).size = Constants.SIG_SIZE := by
     simp [signatureOf, hsize, CALLDATA_LENGTH, BLS_PUBKEY_LENGTH, Constants.PUB_KEY_SIZE,
-      Constants.SIG_SIZE, Constants.DIGEST_LEN, Constants.PUBLIC_PARAM_LEN, Constants.LEAF_INDEX_SIZE,
+      Constants.SIG_SIZE, Constants.DIGEST_LEN, Constants.PUBLIC_PARAM_LEN,
+      Constants.LEAF_INDEX_SIZE,
       Constants.LAYER_SIG_SIZE, Constants.RANDOMIZER_LEN, Constants.V, Constants.LAYER_HEIGHT]
   simp only [decodeSignature, hs, ↓reduceDIte, Except.ok.injEq] at hdec
   subst hdec
